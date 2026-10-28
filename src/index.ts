@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import * as path from "path";
+import { fileURLToPath } from "url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { getAETempDir, getScriptsDir, sendBridgeCommand } from "./core/bridge.js";
@@ -30,7 +32,7 @@ import {
  */
 export const server = new McpServer({
   name: "adobe-after-effect-mcp",
-  version: "2.0.0",
+  version: "2.4.0",
 });
 
 // Expose compositions resource
@@ -137,7 +139,27 @@ async function main() {
   console.error("After Effects MCP Core Server running via Stdio.");
 }
 
-main().catch((error) => {
-  console.error("Fatal error in AE MCP Core server:", error);
-  process.exit(1);
-});
+function isMainModule(): boolean {
+  if (!process.argv[1]) return false;
+  try {
+    const scriptPath = fileURLToPath(import.meta.url);
+    const invokedPath = path.resolve(process.argv[1]);
+    return (
+      scriptPath.toLowerCase() === invokedPath.toLowerCase() ||
+      invokedPath.toLowerCase().endsWith("adobe-after-effect-mcp") ||
+      invokedPath.toLowerCase().endsWith("index.js")
+    );
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule()) {
+  main().catch((error) => {
+    console.error("Fatal error in AE MCP Core server:", error);
+    process.exit(1);
+  });
+} else {
+  // Pure module import validation (smoke test)
+  console.error("After Effects MCP Core Server module imported successfully.");
+}

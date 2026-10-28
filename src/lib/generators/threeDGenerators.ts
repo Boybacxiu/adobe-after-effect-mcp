@@ -42,7 +42,10 @@ import {
 export const RENDERERS: Record<string, string> = {
   classic: 'ADBE Advanced 3d',
   advanced: 'ADBE Calder',
-  cinema4d: 'ADBE Ernst'
+  cinema4d: 'ADBE Ernst',
+  c4d: 'ADBE Ernst',
+  raytraced: 'ADBE Picasso',
+  'ray-traced': 'ADBE Picasso'
 };
 
 /** Renderers under which extrusion and bevel can actually be set. */

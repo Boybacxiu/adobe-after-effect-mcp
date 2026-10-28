@@ -279,6 +279,11 @@ export function registerRenderTools(server: McpServer): void {
         const out = fs.openSync(logPath, "a");
         const child = spawn(aerenderPath, args, { detached: true, stdio: ["ignore", out, out] });
         child.unref();
+        try {
+          fs.closeSync(out);
+        } catch {
+          /* ignore close error */
+        }
         const pid = child.pid || -1;
         if (pid > 0)
           runningRenders.set(pid, {

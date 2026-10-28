@@ -1,6 +1,6 @@
 {
   "name": "adobe-after-effect-mcp",
-  "version": "2.0.0",
+  "version": "2.4.0",
   "description": "Modular MCP server for Adobe After Effects with automatic background CLI execution",
   "type": "module",
   "main": "build/index.js",
@@ -11,7 +11,8 @@
     "build": "tsc && node -e \"require('fs').cpSync('src/scripts','build/scripts',{recursive:true})\"",
     "start": "node build/index.js",
     "dev": "tsc --watch",
-    "install-bridge": "node install-bridge.js"
+    "install-bridge": "node install-bridge.js",
+    "test": "node test/verify-build.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",

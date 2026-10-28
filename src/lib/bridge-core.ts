@@ -194,7 +194,7 @@ export function aerenderCandidates(
   platform: NodeJS.Platform = process.platform,
   env: NodeJS.ProcessEnv = process.env,
 ): string[] {
-  const years = ["2026", "2025", "2024", "2023", "2022", "2021"];
+  const years = ["2026", "2025", "2024", "2023", "2022", "2021", "2020"];
   const candidates: string[] = [];
   if (platform === "win32") {
     const pf = env.ProgramFiles || "C:\\Program Files";

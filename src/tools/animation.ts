@@ -504,7 +504,7 @@ export function registerAnimationTools(server: McpServer): void {
   // Apply expression template
   server.tool(
     "apply-expression-template",
-    "Apply a pre-configured expression from the library to a layer property (e.g. overshoot, bounce, bounceBack, inertia, springy, speedControl, wiggle, loopCycle, clock, countdown).",
+    "Apply a pre-configured expression from the library to a layer property (e.g. overshoot, bounce, bounceBack, inertia, springy, speedControl, wiggle, loopCycle, clock, countdown, slicedWave, sliderWiggle, sineWave).",
     {
       compId: z.number().int().optional().describe("Composition ID (or active comp if omitted)"),
       compName: z.string().optional().describe("Composition name (or active comp if omitted)"),

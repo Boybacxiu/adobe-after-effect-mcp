@@ -1,6 +1,19 @@
 # Adobe After Effects MCP Server
 
+[![Version](https://img.shields.io/badge/version-v2.4-blue.svg)](#)
+[![Tools](https://img.shields.io/badge/tools-167-green.svg)](#-danh-mục-167-tools-15-nhóm-chức-năng)
+
 A high-performance, modular Model Context Protocol (MCP) Server for Adobe After Effects built with TypeScript. Enables AI assistants (Claude, Cursor, Antigravity) to automate After Effects directly via a suite of **167 tools** with background ExtendScript CLI execution.
+
+---
+
+## 💻 System Requirements & Compatibility
+
+- **Adobe After Effects**: Tương thích mượt mà 100% với **Adobe After Effects từ 2020 đến 2025+** (v17.x – v25.x) trên cả **Windows** và **macOS**.
+- **Cấp quyền Scripting bắt buộc**: Trong After Effects, vào **Edit > Preferences > Scripting & Expressions** (hoặc **After Effects > Settings > Scripting & Expressions** trên macOS), tích chọn:
+  - ☑️ **"Allow Scripts to Write Files and Access Network"** *(Bắt buộc để Background Listener IPC giao tiếp tự động với AI)*.
+- **Node.js**: Phiên bản `>= 18.0.0`.
+- **Đa nền tảng**: Tự động dò tìm đường dẫn ứng dụng `AfterFX.exe` và `aerender` trên toàn bộ các phiên bản cài đặt trong hệ điều hành.
 
 ---
 
@@ -54,6 +67,48 @@ Mở After Effects > **Edit > Preferences > Scripting & Expressions** > Tích ch
 
 ---
 
+## 🧠 Hệ Thống Agent Skills Tối Ưu Hóa (.agent/skills/)
+
+Dự án tích hợp sẵn **13 Skills chuyên sâu** theo chuẩn **Progressive Disclosure**, cô đọng 100% nội dung kỹ thuật (quy trình từng bước, công thức toán học, code mẫu chuẩn) và tối ưu hóa tối đa mức tiêu thụ token (~930 tokens khi ở trạng thái chờ):
+
+| Skill | Tệp hướng dẫn | Phạm vi chuyên biệt | Token (Idle / Active) |
+| :--- | :--- | :--- | :---: |
+| **Video Tutorial & YouTube** (`ae-video-tutorial-parser`) | [.agent/skills/ae-video-tutorial-parser/SKILL.md](.agent/skills/ae-video-tutorial-parser/SKILL.md) | Bóc tách video tutorial cục bộ (ffmpeg), phân tích phụ đề YouTube transcript & chuyển đổi sang Blueprint | ~71 / ~1688 |
+| **Motion Design & Scripting** (`ae-design-scripting`) | [.agent/skills/ae-design-scripting/SKILL.md](.agent/skills/ae-design-scripting/SKILL.md) | Phân tích kịch bản, mạng lưới Node-Graph (DAG), cam kết thẩm mỹ, chống AI slop & execution blueprint | ~66 / ~1989 |
+| **Keyframe & Easing** (`ae-keyframe-easing`) | [.agent/skills/ae-keyframe-easing/SKILL.md](.agent/skills/ae-keyframe-easing/SKILL.md) | 12 Ease Presets vận tốc chuẩn hóa, Remotion spring physics, graph retiming | ~68 / ~979 |
+| **Shape Operators** (`ae-shape-operators`) | [.agent/skills/ae-shape-operators/SKILL.md](.agent/skills/ae-shape-operators/SKILL.md) | Toán tử vector thủ tục: Repeater mảng tròn/lưới, Trim Paths, Merge Paths, Polystar | ~70 / ~1166 |
+| **Expression Math** (`ae-expression-math`) | [.agent/skills/ae-expression-math/SKILL.md](.agent/skills/ae-expression-math/SKILL.md) | Biến đổi không gian `toComp`, `lookAt`, responsive `sourceRectAtTime()`, Sliced Wave math, Slider Controls & bounce | ~82 / ~1280 |
+| **Color Management** (`ae-color-management`) | [.agent/skills/ae-color-management/SKILL.md](.agent/skills/ae-color-management/SKILL.md) | Quản lý màu 32-bpc linear compositing, Rec.709/601 luminance, 3D LUT `.cube`, grading stack | ~80 / ~914 |
+| **Asset Interchange** (`ae-asset-interchange`) | [.agent/skills/ae-asset-interchange/SKILL.md](.agent/skills/ae-asset-interchange/SKILL.md) | Nhập khẩu SVG/AI vector, PSD cropped layers, xử lý Straight Alpha & tương thích Lottie | ~81 / ~905 |
+| **Audio Reactive** (`ae-audio-reactive`) | [.agent/skills/ae-audio-reactive/SKILL.md](.agent/skills/ae-audio-reactive/SKILL.md) | Phân tích dạng sóng âm thanh, Audio to Keyframes, bộ lọc decay mượt, bắt nhịp beat | ~69 / ~820 |
+| **MOGRT & Essential Graphics** (`ae-mogrt-essential-graphics`) | [.agent/skills/ae-mogrt-essential-graphics/SKILL.md](.agent/skills/ae-mogrt-essential-graphics/SKILL.md) | Tự động hóa Essential Graphics, phơi lộ tham số động (Text, Color, Slider, Checkbox) | ~80 / ~1040 |
+| **Text Animation** (`ae-text-animation`) | [.agent/skills/ae-text-animation/SKILL.md](.agent/skills/ae-text-animation/SKILL.md) | Kinetic typography, auto RTL/Arabic, range text animators | ~61 / ~545 |
+| **Character Rigging** (`ae-character-rigging`) | [.agent/skills/ae-character-rigging/SKILL.md](.agent/skills/ae-character-rigging/SKILL.md) | Controller-first rigging, limb parenting, joint anchor pivots, plugin Duik Angela nội bộ | ~75 / ~1315 |
+| **Visual Feedback** (`ae-visual-feedback`) | [.agent/skills/ae-visual-feedback/SKILL.md](.agent/skills/ae-visual-feedback/SKILL.md) | Frame preview (`see-frame`), contact sheets, layout & safe area validation, sai số RMSE | ~69 / ~636 |
+| **Render Pipeline** (`ae-render-pipeline`) | [.agent/skills/ae-render-pipeline/SKILL.md](.agent/skills/ae-render-pipeline/SKILL.md) | Background aerender không đơ máy, non-blocking export, render queue | ~66 / ~446 |
+
+> **Tài liệu chuyên sâu mở rộng**:
+> - [`node-procedural-breakdown.md`](.agent/skills/ae-design-scripting/node-procedural-breakdown.md): Phân rã kịch bản Motion phức tạp thành 4 tầng Node thủ tục (Source $\to$ Operator $\to$ Composite $\to$ Master Render).
+> - [`mcp-ease-presets.md`](.agent/skills/ae-keyframe-easing/mcp-ease-presets.md): Bảng tra cứu 12 đường cong vận tốc Easing chuẩn (Linear, Smooth, Decelerate Strong, Expo Decelerate...).
+> - [`anti-generic-motion-check.md`](.agent/skills/ae-design-scripting/anti-generic-motion-check.md): Tiêu chuẩn loại bỏ chuyển động tuyến tính thô kệch và dải gradient AI tím-hồng sáo rỗng.
+> - [`motion-aesthetic-direction.md`](.agent/skills/ae-design-scripting/motion-aesthetic-direction.md): Quy trình cam kết phong cách thẩm mỹ qua 3 tính từ cốt lõi, bảng màu và cặp font.
+> - [`timeline-rhythm-review.md`](.agent/skills/ae-design-scripting/timeline-rhythm-review.md): Quy chuẩn phân cấp thị giác 3 bậc và nhịp điệu timeline xuất hiện so le 3-6 frames.
+
+---
+
+## 🛡️ Hệ Thống Multi-Agent 3 Tầng & Quy Chuẩn Thiết Kế (.agent/rules/)
+
+Hệ thống phân quyền và điều phối chặt chẽ giữa 3 tầng tác nhân:
+
+| File Quy Chuẩn | Tầng tác nhân | Phạm vi trách nhiệm |
+| :--- | :--- | :--- |
+| [`.agent/rules/leader-ae.md`](.agent/rules/leader-ae.md) | **Leader AE** | Giám đốc Nghệ thuật & Kiến trúc sư: Áp dụng tư duy Node-Procedural phân rã Precomps, bóc tách Video Tutorial/YouTube, chỉ định Ease Presets |
+| [`.agent/rules/worker-ae.md`](.agent/rules/worker-ae.md) | **Worker AE** | Kỹ thuật viên Thực thi: Áp dụng Never-Crash (try-finally Undo Group, clamp biên), mapping Ease Presets qua MCP Tool, tự sửa lỗi tối đa 3 lần |
+| [`.agent/rules/design-system-spec.md`](.agent/rules/design-system-spec.md) | **Toàn hệ thống** | Thông số thiết kế chuẩn DESIGN.md: Color tokens (RGB 0-1), 32-bpc linear, Typography scale, Lưới 1/3, Safe zones, Easing 60-85% |
+| [`.agent/rules/agent-collaboration-loop.md`](.agent/rules/agent-collaboration-loop.md) | **Toàn hệ thống** | Phân rã Atomic Tasks (Setup $\to$ Assembly $\to$ Motion $\to$ QA), ma trận xử lý lỗi song song (Triage L1/L2/L3), quy tắc bóc tách Tutorial & YouTube |
+
+---
+
 ## 📊 Danh Mục 167 Tools (15 Nhóm Chức Năng)
 
 | Nhóm chức năng | Số lượng | Phạm vi tính năng chính |
@@ -71,8 +126,9 @@ Mở After Effects > **Edit > Preferences > Scripting & Expressions** > Tích ch
 | **11. Audio Analysis & Control** | 3 | Chỉnh âm lượng dB, audio info, phân tích dạng sóng WAV bắt beat |
 | **12. Visual Feedback & Verification** | 3 | Xuất preview frame, contact sheet, so sánh ảnh tham chiếu |
 | **13. Render Queue & Export** | 11 | Render Queue nội bộ, xuất nền không đơ máy qua `aerender`, gửi sang AME |
-| **14. System & ExtendScript Engine** | 6 | Chạy ExtendScript tùy ý (`execute-script`), kiểm tra cầu nối, chẩn đoán IPC |
+| **14. System & ExtendScript Engine** | 6 | Chạy ExtendScript tùy ý (`execute-script`), kiểm tra bridge health, chẩn đoán IPC |
 | **15. Compatibility Aliases** | 19 | Hệ thống alias snake_case tương thích 100% các client `ae-mcp` |
+| **Tổng cộng** | **167** | **Bộ công cụ tự động hóa toàn diện cho Adobe After Effects** |
 
 ---
 

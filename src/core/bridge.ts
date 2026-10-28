@@ -16,9 +16,35 @@ const __dirname = path.dirname(__filename);
 
 export const SCRIPTS_DIR = path.resolve(__dirname, "..", "scripts");
 export const TEMP_DIR = path.resolve(__dirname, "..", "temp");
+export const PROJECT_ROOT = path.resolve(__dirname, "..", "..");
+export const PLUGINS_DIR = path.resolve(PROJECT_ROOT, "plugins");
+export const DUIK_DIR = path.resolve(PLUGINS_DIR, "Duik-Angela");
 
 export const nextCommandId = makeCommandIdFactory();
 let lastCommandId = "";
+
+/**
+ * Get the project root directory.
+ */
+export function getProjectRootDir(): string {
+  return PROJECT_ROOT;
+}
+
+/**
+ * Get the Duik Angela plugin root directory.
+ */
+export function getDuikDir(): string {
+  return DUIK_DIR;
+}
+
+/**
+ * Resolve a relative path inside the Duik-Angela plugin folder to an absolute path for ExtendScript.
+ * Example: resolveDuikScriptPath("Scripts/Duik_addNull.jsx")
+ */
+export function resolveDuikScriptPath(relativePath: string): string {
+  const clean = relativePath.replace(/^[\\/]?plugins[\\/]Duik-Angela[\\/]/i, "").replace(/^[\\/]/, "");
+  return path.resolve(DUIK_DIR, clean);
+}
 
 /**
  * Get the shared directory for AE bridge communication.
@@ -33,6 +59,40 @@ export function getAETempDir(): string {
 }
 
 /**
+ * Automatically sweep stale temporary files (PNG frames, aerender logs, .tmp files)
+ * older than maxAgeMs (default: 15 minutes) from the bridge temp directory.
+ */
+export function sweepStaleTempFiles(maxAgeMs: number = 15 * 60 * 1000): void {
+  try {
+    const dir = getAETempDir();
+    if (!fs.existsSync(dir)) return;
+    const now = Date.now();
+    const files = fs.readdirSync(dir);
+    for (const file of files) {
+      if (
+        file.startsWith("__mcp_") ||
+        file.startsWith("aerender-") ||
+        file.endsWith(".tmp") ||
+        file.endsWith("_test_out.txt") ||
+        file === "verify_out.txt"
+      ) {
+        const filePath = path.join(dir, file);
+        try {
+          const stat = fs.statSync(filePath);
+          if (now - stat.mtimeMs > maxAgeMs) {
+            fs.unlinkSync(filePath);
+          }
+        } catch {
+          /* ignore file in use */
+        }
+      }
+    }
+  } catch {
+    /* ignore sweep error */
+  }
+}
+
+/**
  * Get the scripts directory where ExtendScript (.jsx) files reside.
  */
 export function getScriptsDir(): string {
@@ -41,23 +101,36 @@ export function getScriptsDir(): string {
 
 /**
  * Locate AfterFX.exe automatically across common installation paths or PATH.
+ * Comprehensive multi-version discovery covering Adobe After Effects 2020 through 2025+.
  */
 export function findAfterFxPath(): string | null {
   if (process.env.AFTERFX_PATH && fs.existsSync(process.env.AFTERFX_PATH)) {
     return process.env.AFTERFX_PATH;
   }
-  const commonPaths = [
-    "C:\\Program Files\\Adobe\\Adobe After Effects 2026\\Support Files\\AfterFX.exe",
-    "C:\\Program Files\\Adobe\\Adobe After Effects 2025\\Support Files\\AfterFX.exe",
-    "C:\\Program Files\\Adobe\\Adobe After Effects 2024\\Support Files\\AfterFX.exe",
-    "C:\\Program Files\\Adobe\\Adobe After Effects 2023\\Support Files\\AfterFX.exe",
-    "C:\\Program Files\\Adobe\\Adobe After Effects 2022\\Support Files\\AfterFX.exe",
-  ];
+  const years = ["2026", "2025", "2024", "2023", "2022", "2021", "2020"];
+  const commonPaths: string[] = [];
+
+  if (process.platform === "win32") {
+    const pf = process.env.ProgramFiles || "C:\\Program Files";
+    for (const y of years) {
+      commonPaths.push(path.join(pf, "Adobe", `Adobe After Effects ${y}`, "Support Files", "AfterFX.exe"));
+      if (pf !== "C:\\Program Files") {
+        commonPaths.push(`C:\\Program Files\\Adobe\\Adobe After Effects ${y}\\Support Files\\AfterFX.exe`);
+      }
+    }
+  } else if (process.platform === "darwin") {
+    for (const y of years) {
+      commonPaths.push(`/Applications/Adobe After Effects ${y}/Adobe After Effects ${y}.app/Contents/MacOS/After Effects`);
+      commonPaths.push(`/Applications/Adobe After Effects ${y}/After Effects`);
+    }
+  }
+
   for (const p of commonPaths) {
     if (fs.existsSync(p)) return p;
   }
   try {
-    const whereOutput = execSync("where.exe afterfx.exe 2>nul", { encoding: "utf-8" }).trim();
+    const cmd = process.platform === "win32" ? "where.exe afterfx.exe 2>nul" : "which afterfx 2>/dev/null";
+    const whereOutput = execSync(cmd, { encoding: "utf-8" }).trim();
     if (whereOutput && fs.existsSync(whereOutput)) return whereOutput;
   } catch {
     /* ignore */
@@ -65,26 +138,39 @@ export function findAfterFxPath(): string | null {
   return null;
 }
 
+let _lastAfterFxCheckTime = 0;
+let _lastAfterFxRunning = false;
+const PROCESS_CHECK_CACHE_MS = 2000;
+
 /**
  * Check if the Adobe After Effects process is currently running.
+ * Results are cached for 2 seconds to avoid running tasklist.exe repeatedly.
  */
-export function isAfterFxRunning(): boolean {
+export function isAfterFxRunning(forceRefresh = false): boolean {
+  const now = Date.now();
+  if (!forceRefresh && now - _lastAfterFxCheckTime < PROCESS_CHECK_CACHE_MS) {
+    return _lastAfterFxRunning;
+  }
+  _lastAfterFxCheckTime = now;
   try {
     if (process.platform === "win32") {
       const out = execSync('tasklist /FI "IMAGENAME eq AfterFX.exe" /NH', {
         encoding: "utf-8",
         stdio: ["pipe", "pipe", "ignore"],
       });
-      return out.toLowerCase().includes("afterfx.exe");
+      _lastAfterFxRunning = out.toLowerCase().includes("afterfx.exe");
     } else if (process.platform === "darwin") {
       const out = execSync('pgrep -i "After Effects"', {
         encoding: "utf-8",
         stdio: ["pipe", "pipe", "ignore"],
       });
-      return out.trim().length > 0;
+      _lastAfterFxRunning = out.trim().length > 0;
+    } else {
+      _lastAfterFxRunning = true;
     }
-    return true;
+    return _lastAfterFxRunning;
   } catch {
+    _lastAfterFxRunning = true;
     return true;
   }
 }
@@ -110,7 +196,11 @@ export function triggerCliExecution(): void {
   }
 }
 
-export function writeCommandFile(command: string, args: Record<string, any> = {}): string {
+export function writeCommandFile(
+  command: string,
+  args: Record<string, any> = {},
+  timeoutMs: number = 7000,
+): string {
   try {
     const commandFile = path.join(getAETempDir(), "ae_command.json");
     const commandId = nextCommandId();
@@ -120,6 +210,7 @@ export function writeCommandFile(command: string, args: Record<string, any> = {}
       args,
       commandId,
       timestamp: new Date().toISOString(),
+      expiresAt: Date.now() + timeoutMs + 1000,
       status: "pending",
     };
     atomicWriteSync(commandFile, JSON.stringify(commandData, null, 2));
@@ -149,13 +240,13 @@ export function clearResultsFile(): void {
 export async function waitForBridgeResult(
   expectedCommand?: string,
   timeoutMs: number = 7000,
-  pollMs: number = 250,
+  pollMs: number = 80,
   expectedId?: string,
 ): Promise<string> {
   const start = Date.now();
   const resultPath = path.join(getAETempDir(), "ae_mcp_result.json");
   let lastSize = -1;
-  let delay = Math.min(POLL_START_MS, pollMs);
+  let delay = Math.min(20, pollMs);
   const idToMatch = expectedId || lastCommandId || "";
 
   while (Date.now() - start < timeoutMs) {
@@ -190,13 +281,13 @@ export async function waitForBridgeResult(
     delay = nextPollDelay(delay, pollMs);
   }
 
-  const aeAlive = isAfterFxRunning();
+  const aeAlive = isAfterFxRunning(true);
   return JSON.stringify({
     status: "error",
     error: `Quá thời gian chờ phản hồi (Timeout) cho lệnh '${expectedCommand || "unknown"}'`,
     detail: aeAlive
       ? "Tiến trình After Effects đang chạy nhưng Background Listener không phản hồi kết quả trong khoảng thời gian quy định."
-      : "Tiến trình After Effects (AfterFX.exe) đã bị đóng hoặc không còn chạy.",
+      : "Tiến trình After Effects (AfterFX.exe) chưa được mở hoặc đã bị đóng.",
     troubleshooting: aeAlive
       ? [
           "Kiểm tra xem After Effects có đang mở hộp thoại modal cảnh báo nào chặn script không.",
@@ -204,7 +295,7 @@ export async function waitForBridgeResult(
           "Xác nhận file 'mcp-bridge-auto.jsx' đã được đặt trong thư mục Startup và After Effects đã được khởi động lại."
         ]
       : [
-          "Khởi động lại phần mềm Adobe After Effects.",
+          "Vui lòng khởi động phần mềm Adobe After Effects trên máy của bạn.",
           "Chờ After Effects khởi động xong để Background Listener tự động kích hoạt."
         ],
     _commandExecuted: expectedCommand,
@@ -229,25 +320,24 @@ export async function sendBridgeCommand(
   command: string,
   args: Record<string, any> = {},
   timeoutMs: number = 7000,
-  pollMs: number = 250,
+  pollMs: number = 80,
 ): Promise<string> {
   return bridgeMutex(async () => {
     // 1. Pre-flight check: Is After Effects currently running?
     if (!isAfterFxRunning()) {
       return JSON.stringify({
         status: "error",
-        error: "After Effects chưa được khởi chạy",
+        error: "Adobe After Effects chưa được mở",
         detail: "Không tìm thấy tiến trình AfterFX.exe đang hoạt động trên hệ thống.",
         troubleshooting: [
-          "Hãy mở Adobe After Effects trước khi thực thi các tool điều khiển.",
-          "Background Listener ('mcp-bridge-auto.jsx' trong thư mục Startup) sẽ tự động nạp khi After Effects khởi động."
+          "Vui lòng mở phần mềm Adobe After Effects trên máy của bạn trước khi thực hiện các tác vụ điều khiển.",
+          "Sau khi After Effects mở xong, Background Listener ('mcp-bridge-auto.jsx' trong thư mục Startup) sẽ tự động nạp và sẵn sàng nhận lệnh."
         ],
         _commandExecuted: command,
       });
     }
 
-    clearResultsFile();
-    const id = writeCommandFile(command, args);
+    const id = writeCommandFile(command, args, timeoutMs);
     if (!id) {
       return JSON.stringify({
         status: "error",
@@ -256,18 +346,58 @@ export async function sendBridgeCommand(
       });
     }
 
-    return waitForBridgeResult(command, timeoutMs, pollMs, id);
+    const res = await waitForBridgeResult(command, timeoutMs, pollMs, id);
+    return res;
   });
 }
 
 /**
  * Execute ExtendScript code in After Effects via the bridge file mechanism.
+ * Automatically injects Duik Angela and Project Root environment variables.
  */
 export async function executeExtendScript(
   script: string,
   timeoutMs: number = 30000,
   undoName?: string,
 ): Promise<string> {
-  return sendBridgeCommand("executeScript", { script, undoName }, timeoutMs, 250);
+  const duikNormalized = DUIK_DIR.replace(/\\/g, "/");
+  const projectRootNormalized = PROJECT_ROOT.replace(/\\/g, "/");
+
+  // Auto-resolve relative Duik paths written as "plugins/Duik-Angela/..."
+  const resolvedScript = script.replace(/plugins\/Duik-Angela\//g, `${duikNormalized}/`);
+
+  const preamble = `
+var PROJECT_ROOT = "${projectRootNormalized}";
+var DUIK_DIR = "${duikNormalized}";
+if (typeof $.global !== "undefined") {
+    $.global.PROJECT_ROOT = PROJECT_ROOT;
+    $.global.DUIK_DIR = DUIK_DIR;
+    if (!$.global.duikFile) {
+        $.global.duikFile = function(rel) {
+            var clean = (rel || "").replace(/^plugins[\\\\\\/]Duik-Angela[\\\\\\/]/i, "").replace(/^[\\\\\\/]/, "");
+            return new File($.global.DUIK_DIR + "/" + clean);
+        };
+    }
+    if (!$.global.evalDuik) {
+        $.global.evalDuik = function(rel) {
+            var f = $.global.duikFile(rel);
+            if (f.exists) { return $.evalFile(f); }
+            else { throw new Error("Duik script not found: " + f.fsName); }
+        };
+    }
+}
+`;
+
+  return sendBridgeCommand(
+    "executeScript",
+    {
+      script: preamble + resolvedScript,
+      undoName,
+      duikDir: duikNormalized,
+      projectRoot: projectRootNormalized,
+    },
+    timeoutMs,
+    250,
+  );
 }
 

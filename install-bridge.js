@@ -9,22 +9,14 @@ const __dirname = path.dirname(__filename);
 const isMac = process.platform === "darwin";
 const isWindows = process.platform === "win32";
 
+const years = ["2026", "2025", "2024", "2023", "2022", "2021", "2020"];
+const pf = process.env.ProgramFiles || "C:\\Program Files";
+
 const possibleAppPaths = isMac
-  ? [
-      "/Applications/Adobe After Effects 2026",
-      "/Applications/Adobe After Effects 2025",
-      "/Applications/Adobe After Effects 2024",
-      "/Applications/Adobe After Effects 2023",
-      "/Applications/Adobe After Effects 2022",
-      "/Applications/Adobe After Effects 2021",
-    ]
+  ? years.map((y) => `/Applications/Adobe After Effects ${y}`)
   : [
-      "C:\\Program Files\\Adobe\\Adobe After Effects 2026",
-      "C:\\Program Files\\Adobe\\Adobe After Effects 2025",
-      "C:\\Program Files\\Adobe\\Adobe After Effects 2024",
-      "C:\\Program Files\\Adobe\\Adobe After Effects 2023",
-      "C:\\Program Files\\Adobe\\Adobe After Effects 2022",
-      "C:\\Program Files\\Adobe\\Adobe After Effects 2021",
+      ...years.map((y) => path.join(pf, "Adobe", `Adobe After Effects ${y}`)),
+      ...(pf !== "C:\\Program Files" ? years.map((y) => `C:\\Program Files\\Adobe\\Adobe After Effects ${y}`) : []),
     ];
 
 const sourceScript = path.join(__dirname, "build", "scripts", "mcp-bridge-auto.jsx");

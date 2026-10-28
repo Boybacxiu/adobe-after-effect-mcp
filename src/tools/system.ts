@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import * as fs from "fs";
 import * as path from "path";
 import { z } from "zod";
-import { getAETempDir, sendBridgeCommand } from "../core/bridge.js";
+import { getAETempDir, sendBridgeCommand, executeExtendScript } from "../core/bridge.js";
 import { bridgeToolResult } from "../lib/bridge-core.js";
 
 const EXPECTED_BRIDGE_VERSION = "1.13.0-mcp-enhanced";
@@ -196,7 +196,7 @@ export function registerSystemTools(server: McpServer): void {
     },
     async ({ script, timeoutMs = 60000 }) => {
       try {
-        const result = await sendBridgeCommand("executeScript", { script }, timeoutMs, 250);
+        const result = await executeExtendScript(script, timeoutMs);
         return bridgeToolResult(result);
       } catch (error) {
         return {

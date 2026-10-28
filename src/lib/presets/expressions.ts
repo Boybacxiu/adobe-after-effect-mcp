@@ -347,6 +347,98 @@ var maxY = {{maxY}};
     description: 'Random position within bounds'
   },
 
+  // ============================================
+  // SLICED WAVE & MATH OSCILLATION EXPRESSIONS
+  // ============================================
+  slicedWave: {
+    name: 'Sliced Wave Oscillation',
+    category: 'wave',
+    expression: `// Sliced Wave Expression
+var ctrl = null;
+try { ctrl = thisComp.layer("{{controllerName}}"); } catch (e) {}
+var amp = {{amplitude}};
+var freq = {{frequency}};
+var phase = {{phaseOffset}};
+var decay = {{decay}};
+if (ctrl) {
+  try { if (ctrl.effect("Amplitude")) amp = ctrl.effect("Amplitude")(1).value; } catch (e) {}
+  try { if (ctrl.effect("Frequency")) freq = ctrl.effect("Frequency")(1).value; } catch (e) {}
+  try { if (ctrl.effect("Phase_Offset")) phase = ctrl.effect("Phase_Offset")(1).value; } catch (e) {}
+  try { if (ctrl.effect("Decay")) decay = ctrl.effect("Decay")(1).value; } catch (e) {}
+}
+var order = {{useIndex}} ? (index - {{indexOffset}}) : {{order}};
+var t = Math.max(0, time - {{startTime}});
+var envelope = decay > 0 ? Math.exp(-decay * t) : 1;
+var wave = Math.sin((t * freq * Math.PI * 2) + (order * phase)) * amp * envelope;
+var ax = {{axis}};
+if (value instanceof Array) {
+  var res = [];
+  for (var i = 0; i < value.length; i++) { res.push(i === ax ? value[i] + wave : value[i]); }
+  res;
+} else {
+  value + wave;
+}`,
+    parameters: {
+      controllerName: { type: 'string', default: 'Wave_Controller', description: 'Name of the controller Null layer' },
+      amplitude: { type: 'number', default: 30, description: 'Displacement amplitude in pixels' },
+      frequency: { type: 'number', default: 2, description: 'Oscillations per second (Hz)' },
+      phaseOffset: { type: 'number', default: 0.35, description: 'Phase delay per slice layer (radians)' },
+      decay: { type: 'number', default: 0, description: 'Damping decay rate (0 = continuous oscillation)' },
+      axis: { type: 'number', default: 1, description: 'Oscillation axis: 0 = X, 1 = Y' },
+      useIndex: { type: 'boolean', default: true, description: 'Calculate slice order automatically from layer index' },
+      indexOffset: { type: 'number', default: 0, description: 'Base index offset' },
+      order: { type: 'number', default: 0, description: 'Manual slice order if useIndex is false' },
+      startTime: { type: 'number', default: 0, description: 'Animation start time in seconds' }
+    },
+    description: 'Sliced wave oscillation using Math.sin() with index phase offset, amplitude, frequency, and optional decay envelope. Dynamically links to Master Controller Null (Wave_Controller) Slider Controls.'
+  },
+
+  sliderWiggle: {
+    name: 'Slider-Controlled Wiggle',
+    category: 'wiggle',
+    expression: `// Slider-Controlled Wiggle
+var ctrl = null;
+try { ctrl = thisComp.layer("{{controllerName}}"); } catch (e) {}
+var freq = {{frequency}};
+var amp = {{amplitude}};
+if (ctrl) {
+  try { if (ctrl.effect("Wiggle_Freq")) freq = ctrl.effect("Wiggle_Freq")(1).value; } catch (e) {}
+  try { if (ctrl.effect("Wiggle_Amp")) amp = ctrl.effect("Wiggle_Amp")(1).value; } catch (e) {}
+}
+wiggle(freq, amp);`,
+    parameters: {
+      controllerName: { type: 'string', default: 'Wave_Controller', description: 'Name of controller Null' },
+      frequency: { type: 'number', default: 3, description: 'Default frequency if slider not found' },
+      amplitude: { type: 'number', default: 20, description: 'Default amplitude if slider not found' }
+    },
+    description: 'Wiggle expression dynamically driven by Slider Controls on a master controller Null'
+  },
+
+  sineWave: {
+    name: 'Parametric Sine Wave',
+    category: 'math',
+    expression: `// Parametric Sine Wave
+var freq = {{frequency}};
+var amp = {{amplitude}};
+var phase = {{phase}};
+var ax = {{axis}};
+var wave = Math.sin((time * freq * Math.PI * 2) + phase) * amp;
+if (value instanceof Array) {
+  var res = [];
+  for (var i = 0; i < value.length; i++) { res.push(i === ax ? value[i] + wave : value[i]); }
+  res;
+} else {
+  value + wave;
+}`,
+    parameters: {
+      frequency: { type: 'number', default: 2, description: 'Oscillations per second (Hz)' },
+      amplitude: { type: 'number', default: 40, description: 'Maximum wave displacement' },
+      phase: { type: 'number', default: 0, description: 'Phase offset in radians' },
+      axis: { type: 'number', default: 1, description: '0 = X, 1 = Y, 2 = Z' }
+    },
+    description: 'Smooth mathematical sine wave oscillation along a specific axis'
+  },
+
   randomRotation: {
     name: 'Random Rotation',
     category: 'random',
