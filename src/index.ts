@@ -1,9 +1,10 @@
 #!/usr/bin/env node
+import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { getAETempDir, getScriptsDir, sendBridgeCommand } from "./core/bridge.js";
+import { getAETempDir, getScriptsDir, PROJECT_ROOT, sendBridgeCommand } from "./core/bridge.js";
 import {
   registerAllTools,
   registerAliasTools,
@@ -105,6 +106,63 @@ server.prompt("setup-project", "Set up a new project with standard folder struct
     ],
   };
 });
+
+// Register all 13 Agent Skills as native MCP Prompts and Resources
+const skillsDir = path.resolve(PROJECT_ROOT, ".agent", "skills");
+if (fs.existsSync(skillsDir)) {
+  try {
+    const skillFolders = fs.readdirSync(skillsDir).filter((f) => {
+      try {
+        return fs.statSync(path.join(skillsDir, f)).isDirectory();
+      } catch {
+        return false;
+      }
+    });
+
+    for (const skillName of skillFolders) {
+      const skillMdPath = path.join(skillsDir, skillName, "SKILL.md");
+      if (fs.existsSync(skillMdPath)) {
+        const rawContent = fs.readFileSync(skillMdPath, "utf8");
+        const descMatch = rawContent.match(/description:\s*"([^"]+)"/);
+        const skillDesc = descMatch ? descMatch[1] : `After Effects skill guidelines for ${skillName}`;
+
+        // 1. Expose as MCP Resource: ae://skills/<skill-name>
+        server.resource(
+          `skill-${skillName}`,
+          `ae://skills/${skillName}`,
+          async (uri) => ({
+            contents: [
+              {
+                uri: uri.href,
+                mimeType: "text/markdown",
+                text: fs.readFileSync(skillMdPath, "utf8"),
+              },
+            ],
+          })
+        );
+
+        // 2. Expose as native MCP Prompt: /<skill-name>
+        server.prompt(
+          skillName,
+          skillDesc,
+          () => ({
+            messages: [
+              {
+                role: "user",
+                content: {
+                  type: "text",
+                  text: `[Quy chuẩn thiết kế Motion từ Skill ${skillName}]\n\nHãy tuân thủ và áp dụng các quy tắc kỹ thuật, công thức toán học và hướng dẫn sau đây khi thực thi tác vụ After Effects:\n\n${fs.readFileSync(skillMdPath, "utf8")}`,
+                },
+              },
+            ],
+          })
+        );
+      }
+    }
+  } catch (err) {
+    console.error("Warning: could not register agent skills as MCP prompts/resources:", err);
+  }
+}
 
 // Register all tools across all domain modules
 registerAllTools(server);
