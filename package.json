@@ -14,6 +14,7 @@
     "install-bridge": "node scripts/install-bridge.js",
     "doctor": "node scripts/setup-check.js",
     "setup": "node scripts/setup-check.js",
+    "ping": "node scripts/quick-ping.js",
     "test": "node test/verify-build.js"
   },
   "dependencies": {

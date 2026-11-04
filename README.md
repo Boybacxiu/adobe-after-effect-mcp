@@ -39,7 +39,13 @@ Người dùng chỉ cần **nhấp đúp** vào file [`setup.cmd`](setup.cmd) (
 * Quét và phát hiện trạng thái After Effects (đang mở hay chưa) và kiểm tra quyền Scripting Preferences.
 * Tự động cấu hình MCP Client cho **Claude Desktop** và **Cursor / Antigravity / Windsurf**.
 
-#### Cách 2: Thiết Lập Thủ Công (Windows & macOS)
+#### Cách 2: Kiểm Tra Nhanh Kết Nối & 167 Tools (`test-ping.cmd`)
+Khi cần kiểm tra nhanh xem After Effects đã kết nối với Bridge chưa trước khi bắt đầu làm việc:
+* Nhấp đúp vào file [`test-ping.cmd`](test-ping.cmd) (hoặc gõ `npm run ping` trong terminal).
+* Gửi Live Ping tới After Effects trong < 1 giây, đo độ trễ (latency ms), hiển thị project và composition hiện tại.
+* Hiển thị bảng tổng hợp toàn bộ **167 MCP Tools** được phân loại trực quan theo nhóm tính năng.
+
+#### Cách 3: Thiết Lập Thủ Công (Windows & macOS)
 ```bash
 # 1. Cài đặt thư viện dependencies
 npm install
