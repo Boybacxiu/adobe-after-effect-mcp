@@ -7,80 +7,38 @@ A high-performance, modular Model Context Protocol (MCP) Server for Adobe After 
 
 ---
 
-## 💻 System Requirements & Compatibility
+## ⚡ Hướng Dẫn Cài Đặt & Kết Nối (Setup & Connection Guide)
 
-- **Adobe After Effects**: Tương thích mượt mà 100% với **Adobe After Effects từ 2020 đến 2025+** (v17.x – v25.x) trên cả **Windows** và **macOS**.
-- **Cấp quyền Scripting bắt buộc**: Trong After Effects, vào **Edit > Preferences > Scripting & Expressions** (hoặc **After Effects > Settings > Scripting & Expressions** trên macOS), tích chọn:
-  - ☑️ **"Allow Scripts to Write Files and Access Network"** *(Bắt buộc để Background Listener IPC giao tiếp tự động với AI)*.
-- **Node.js**: Phiên bản `>= 18.0.0`.
-- **Đa nền tảng**: Tự động dò tìm đường dẫn ứng dụng `AfterFX.exe` và `aerender` trên toàn bộ các phiên bản cài đặt trong hệ điều hành.
+Thực hiện theo các bước đơn giản dưới đây để thiết lập và kết nối MCP Server với After Effects:
 
----
+### Bước 1: Yêu Cầu Chuẩn Bị (Prerequisites)
+1. **Node.js**: Phiên bản **>= 18.0.0** (Tải tại [nodejs.org](https://nodejs.org/)).
+2. **Adobe After Effects**: Phiên bản bất kỳ từ **2020 đến 2025+** (v17.x – v25.x) trên Windows hoặc macOS.
+3. **Cấp quyền Scripting (Bắt buộc duy nhất)**:
+   * Trong After Effects, vào **Edit > Preferences > Scripting & Expressions...** (macOS: **After Effects > Settings > Scripting & Expressions...**).
+   * Tích chọn: ☑️ **"Allow Scripts to Write Files and Access Network"** *(Cho phép script ghi tệp và truy cập mạng)*.
+   * Khởi động lại After Effects một lần.
 
-## ⚡ Hướng Dẫn Cài Đặt & Kết Nối Trên Máy Mới (Quick Setup & Migration Guide)
-
-Khi chuyển sang máy tính mới hoặc vừa clone repository về, bạn thực hiện theo 4 mục đơn giản dưới đây:
-
-### Mục 1: Yêu Cầu Chuẩn Bị Trên Máy Mới (Prerequisites)
-1. **Adobe After Effects**: Phiên bản bất kỳ từ **2020 đến 2025+** (v17.x – v25.x) trên Windows hoặc macOS.
-2. **Node.js**: Phiên bản **>= 18.0.0** (Tải tại [nodejs.org](https://nodejs.org/)).
-3. **Git**: Để clone repository về máy.
+> **Quy tắc sử dụng hàng ngày**: Trước khi yêu cầu AI thực thi lệnh thiết kế, vui lòng **tự mở After Effects trên máy**. Background Bridge sẽ tự động kích hoạt ngầm, không cần mở panel hay thao tác thủ công.
 
 ---
 
-### Mục 2: Cài Đặt & Kết Nối Tự Động (One-Click Setup)
+### Bước 2: Cài Đặt & Kết Nối (Setup & Connect)
 
 #### Cách 1: Chạy 1-Click Script (Khuyên dùng cho Windows)
-Người dùng chỉ cần **nhấp đúp** vào file [`setup.cmd`](setup.cmd) (hoặc gõ `setup.cmd` trong terminal):
-* Tự động kiểm tra Node.js và môi trường hệ thống.
-* Tự động cài đặt dependencies (`npm install`) nếu chưa có.
-* Tự động biên dịch mã nguồn (`npm run build`).
-* Tự động cài đặt Background Bridge (`mcp-bridge-auto.jsx`) vào thư mục `Scripts/Startup/` của tất cả phiên bản After Effects tìm thấy trên máy.
-* Quét và phát hiện trạng thái After Effects (đang mở hay chưa) và kiểm tra quyền Scripting Preferences.
-* Tự động cấu hình MCP Client cho **Claude Desktop** và **Cursor / Antigravity / Windsurf**.
+* **Thiết lập lần đầu**: Nhấp đúp vào [`setup.cmd`](setup.cmd) (hoặc gõ `setup.cmd` trong terminal). Hệ thống sẽ tự động kiểm tra môi trường, cài đặt dependencies, biên dịch mã nguồn, cài Bridge vào thư mục Startup của After Effects và tự động cấu hình cho Claude Desktop & Cursor.
+* **Kiểm tra nhanh hàng ngày**: Nhấp đúp vào [`test-ping.cmd`](test-ping.cmd) (hoặc gõ `npm run ping` trong terminal) để gửi Live Ping tới After Effects trong < 1 giây và xem dashboard toàn bộ 167 tools.
 
-#### Cách 2: Kiểm Tra Nhanh Kết Nối & 167 Tools (`test-ping.cmd`)
-Khi cần kiểm tra nhanh xem After Effects đã kết nối với Bridge chưa trước khi bắt đầu làm việc:
-* Nhấp đúp vào file [`test-ping.cmd`](test-ping.cmd) (hoặc gõ `npm run ping` trong terminal).
-* Gửi Live Ping tới After Effects trong < 1 giây, đo độ trễ (latency ms), hiển thị project và composition hiện tại.
-* Hiển thị bảng tổng hợp toàn bộ **167 MCP Tools** được phân loại trực quan theo nhóm tính năng.
-
-#### Cách 3: Thiết Lập Thủ Công (Windows & macOS)
+#### Cách 2: Thiết Lập Thủ Công (Windows & macOS)
 ```bash
-# 1. Cài đặt thư viện dependencies
-npm install
-
-# 2. Biên dịch TypeScript sang JavaScript
-npm run build
-
-# 3. Tự động sao chép Bridge Listener vào thư mục Startup của After Effects
-npm run install-bridge
-
-# 4. Kiểm tra sức khỏe hệ thống & chẩn đoán kết nối
-npm run doctor
+npm install             # 1. Cài đặt thư viện dependencies
+npm run build           # 2. Biên dịch TypeScript sang JavaScript
+npm run install-bridge  # 3. Copy Bridge Listener vào Startup của After Effects
+npm run doctor          # 4. Kiểm tra sức khỏe hệ thống & tự động cấu hình Client
 ```
 
----
-
-### Mục 3: Cài Đặt Bắt Buộc Phải Bật Trong After Effects
-
-Đây là thiết lập **bắt buộc duy nhất** để After Effects cho phép AI giao tiếp qua Background IPC:
-1. Mở phần mềm **Adobe After Effects**.
-2. Mở cửa sổ Preferences:
-   * **Windows**: `Edit` > `Preferences` > `Scripting & Expressions...`
-   * **macOS**: `After Effects` > `Settings` > `Scripting & Expressions...`
-3. Tích chọn vào ô:
-   * ☑️ **"Allow Scripts to Write Files and Access Network"** *(Cho phép script ghi tệp và truy cập mạng)*.
-4. Bấm **OK** và khởi động lại After Effects một lần.
-
-> **Quy tắc sử dụng hàng ngày**: Trước khi bắt đầu làm việc với AI, bạn chỉ cần **mở After Effects lên trước**. Background Bridge sẽ tự động kích hoạt ngầm, không cần mở panel hay thao tác thủ công.
-
----
-
-### Mục 4: Cấu Hình MCP Client (Claude Desktop & Cursor)
-
-#### A. Cursor / Antigravity / Windsurf
-Repository đã tích hợp sẵn tệp cấu hình [`.mcp.json`](.mcp.json) ở thư mục gốc. Khi bạn mở thư mục này trong Cursor hoặc Antigravity, trình soạn thảo sẽ tự động nhận diện MCP server:
+#### Cấu Hình MCP Client (Tự động hoặc Thủ công)
+* **Cursor / Antigravity / Windsurf**: Đã tích hợp sẵn cấu hình trong [`.mcp.json`](.mcp.json) ở thư mục gốc (tự động nhận diện khi mở dự án):
 ```json
 {
   "mcpServers": {
@@ -91,13 +49,7 @@ Repository đã tích hợp sẵn tệp cấu hình [`.mcp.json`](.mcp.json) ở
   }
 }
 ```
-
-#### B. Claude Desktop
-Khi chạy `setup.cmd` hoặc `npm run doctor`, hệ thống sẽ **tự động phát hiện và thêm cấu hình** vào tệp `claude_desktop_config.json`. Nếu cần cấu hình thủ công:
-* **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-* **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-
-Thêm cấu hình (sử dụng đường dẫn tuyệt đối với dấu gạch chéo `/`):
+* **Claude Desktop**: Đã được `setup.cmd` hoặc `npm run doctor` tự động cấu hình vào `claude_desktop_config.json`. Nếu cấu hình thủ công:
 ```json
 {
   "mcpServers": {
@@ -108,17 +60,7 @@ Thêm cấu hình (sử dụng đường dẫn tuyệt đối với dấu gạch
   }
 }
 ```
-*(Sau khi thêm, khởi động lại Claude Desktop để kích hoạt toàn bộ 167 tools).*
-
----
-
-## 🚀 Key Highlights
-
-- **167 Tools Across 15 Modules**: Quản lý toàn diện comp, layer, keyframe, mask, 3D camera/lights, effects, render và visual AI.
-- **Background Headless Execution**: Thực thi qua `AfterFX.exe -r` và IPC file polling (`ae_command.json` / `ae_mcp_result.json`), không nghẽn UI.
-- **Remotion Spring Physics**: Mô phỏng dao động lò xo chuẩn xác (damping, stiffness, mass, settling time).
-- **Multilingual & RTL**: Hỗ trợ văn bản RTL (tiếng Ả Rập, Do Thái) và ánh xạ `matchName` độc lập ngôn ngữ.
-- **Full Client Compatibility**: Hỗ trợ cả hai chuẩn định dạng kebab-case (`create-composition`) và snake_case (`create_project`).
+*(Khởi động lại Claude Desktop hoặc Cursor để nạp cấu hình mới).*
 
 ---
 
@@ -142,25 +84,23 @@ Dự án tích hợp sẵn **13 Skills chuyên sâu** theo chuẩn **Progressive
 | **Visual Feedback** (`ae-visual-feedback`) | [.agent/skills/ae-visual-feedback/SKILL.md](.agent/skills/ae-visual-feedback/SKILL.md) | Frame preview (`see-frame`), contact sheets, layout & safe area validation, sai số RMSE | ~69 / ~636 |
 | **Render Pipeline** (`ae-render-pipeline`) | [.agent/skills/ae-render-pipeline/SKILL.md](.agent/skills/ae-render-pipeline/SKILL.md) | Background aerender không đơ máy, non-blocking export, render queue | ~66 / ~446 |
 
-> **Tài liệu chuyên sâu mở rộng**:
-> - [`node-procedural-breakdown.md`](.agent/skills/ae-design-scripting/node-procedural-breakdown.md): Phân rã kịch bản Motion phức tạp thành 4 tầng Node thủ tục (Source $\to$ Operator $\to$ Composite $\to$ Master Render).
-> - [`mcp-ease-presets.md`](.agent/skills/ae-keyframe-easing/mcp-ease-presets.md): Bảng tra cứu 12 đường cong vận tốc Easing chuẩn (Linear, Smooth, Decelerate Strong, Expo Decelerate...).
-> - [`anti-generic-motion-check.md`](.agent/skills/ae-design-scripting/anti-generic-motion-check.md): Tiêu chuẩn loại bỏ chuyển động tuyến tính thô kệch và dải gradient AI tím-hồng sáo rỗng.
-> - [`motion-aesthetic-direction.md`](.agent/skills/ae-design-scripting/motion-aesthetic-direction.md): Quy trình cam kết phong cách thẩm mỹ qua 3 tính từ cốt lõi, bảng màu và cặp font.
-> - [`timeline-rhythm-review.md`](.agent/skills/ae-design-scripting/timeline-rhythm-review.md): Quy chuẩn phân cấp thị giác 3 bậc và nhịp điệu timeline xuất hiện so le 3-6 frames.
+> **Tài liệu mở rộng**:
+> - [`node-procedural-breakdown.md`](.agent/skills/ae-design-scripting/node-procedural-breakdown.md): Phân rã kịch bản Motion 4 tầng Node thủ tục.
+> - [`mcp-ease-presets.md`](.agent/skills/ae-keyframe-easing/mcp-ease-presets.md): Bảng tra cứu 12 đường cong Easing chuẩn.
+> - [`anti-generic-motion-check.md`](.agent/skills/ae-design-scripting/anti-generic-motion-check.md): Tiêu chuẩn loại bỏ chuyển động tuyến tính thô và gradient tím-hồng.
+> - [`motion-aesthetic-direction.md`](.agent/skills/ae-design-scripting/motion-aesthetic-direction.md): Định hướng phong cách thẩm mỹ & bảng màu.
+> - [`timeline-rhythm-review.md`](.agent/skills/ae-design-scripting/timeline-rhythm-review.md): Quy chuẩn nhịp điệu timeline và phân cấp thị giác.
 
 ---
 
-## 🛡️ Hệ Thống Multi-Agent 3 Tầng & Quy Chuẩn Thiết Kế (.agent/rules/)
+## 🛡️ Hệ Thống Multi-Agent 3 Tầng (.agent/rules/)
 
-Hệ thống phân quyền và điều phối chặt chẽ giữa 3 tầng tác nhân:
-
-| File Quy Chuẩn | Tầng tác nhân | Phạm vi trách nhiệm |
+| File Quy Chuẩn | Tầng tác nhân | Trách nhiệm chính |
 | :--- | :--- | :--- |
-| [`.agent/rules/leader-ae.md`](.agent/rules/leader-ae.md) | **Leader AE** | Giám đốc Nghệ thuật & Kiến trúc sư: Áp dụng tư duy Node-Procedural phân rã Precomps, bóc tách Video Tutorial/YouTube, chỉ định Ease Presets |
-| [`.agent/rules/worker-ae.md`](.agent/rules/worker-ae.md) | **Worker AE** | Kỹ thuật viên Thực thi: Áp dụng Never-Crash (try-finally Undo Group, clamp biên), mapping Ease Presets qua MCP Tool, tự sửa lỗi tối đa 3 lần |
-| [`.agent/rules/design-system-spec.md`](.agent/rules/design-system-spec.md) | **Toàn hệ thống** | Thông số thiết kế chuẩn DESIGN.md: Color tokens (RGB 0-1), 32-bpc linear, Typography scale, Lưới 1/3, Safe zones, Easing 60-85% |
-| [`.agent/rules/agent-collaboration-loop.md`](.agent/rules/agent-collaboration-loop.md) | **Toàn hệ thống** | Phân rã Atomic Tasks (Setup $\to$ Assembly $\to$ Motion $\to$ QA), ma trận xử lý lỗi song song (Triage L1/L2/L3), quy tắc bóc tách Tutorial & YouTube |
+| [`.agent/rules/leader-ae.md`](.agent/rules/leader-ae.md) | **Leader AE** | Art Director: Phân rã Node-Procedural, bóc tách tutorial, lập execution blueprint |
+| [`.agent/rules/worker-ae.md`](.agent/rules/worker-ae.md) | **Worker AE** | Execution Tech: Thực thi lệnh MCP, try-finally Undo Group, tự sửa lỗi tối đa 3 lần |
+| [`.agent/rules/design-system-spec.md`](.agent/rules/design-system-spec.md) | **Toàn hệ thống** | Thông số thiết kế: Màu RGB 0-1, 32-bpc linear, typography scale, lưới 1/3, safe zones |
+| [`.agent/rules/agent-collaboration-loop.md`](.agent/rules/agent-collaboration-loop.md) | **Toàn hệ thống** | Vòng lặp cộng tác: Atomic Tasks (Setup $\to$ Assembly $\to$ Motion $\to$ QA), Triage L1/L2/L3 |
 
 ---
 
