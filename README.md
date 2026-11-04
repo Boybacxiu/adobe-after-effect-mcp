@@ -70,64 +70,35 @@ npm run doctor          # 4. Kiểm tra sức khỏe hệ thống & tự động
 
 Tích hợp sẵn **13 kỹ năng chuyên sâu** hỗ trợ quy trình thiết kế và tự động hóa trong After Effects:
 
-| Kỹ năng | Tệp hướng dẫn | Trọng tâm chuyên môn |
-| :--- | :--- | :--- |
-| **Motion Design & Scripting** | [`ae-design-scripting`](.agent/skills/ae-design-scripting/SKILL.md) | Phân tích kịch bản, mạng lưới Node-Procedural, thẩm mỹ & blueprint |
-| **Keyframe & Easing** | [`ae-keyframe-easing`](.agent/skills/ae-keyframe-easing/SKILL.md) | 12 Ease Presets chuẩn hóa, Remotion spring physics, graph retiming |
-| **Shape Operators** | [`ae-shape-operators`](.agent/skills/ae-shape-operators/SKILL.md) | Repeater mảng tròn/lưới, Trim Paths, Merge Paths, Polystar |
-| **Text Animation** | [`ae-text-animation`](.agent/skills/ae-text-animation/SKILL.md) | Kinetic typography, auto RTL/Arabic, range text animators |
-| **Expression Math** | [`ae-expression-math`](.agent/skills/ae-expression-math/SKILL.md) | ToComp, lookAt, responsive text, slider controls & wave math |
-| **Video Tutorial Parser** | [`ae-video-tutorial-parser`](.agent/skills/ae-video-tutorial-parser/SKILL.md) | Bóc tách video tutorial (ffmpeg) & YouTube transcript thành blueprint |
-| **Color Management** | [`ae-color-management`](.agent/skills/ae-color-management/SKILL.md) | Quản lý màu 32-bpc linear, 3D LUT .cube, grading stack |
-| **Asset Interchange** | [`ae-asset-interchange`](.agent/skills/ae-asset-interchange/SKILL.md) | Nhập SVG/AI vector, PSD cropped layers, alpha channel & Lottie |
-| **Audio Reactive** | [`ae-audio-reactive`](.agent/skills/ae-audio-reactive/SKILL.md) | Bắt nhịp beat, audio to keyframes, lọc decay biên độ âm thanh |
-| **MOGRT / Essential Graphics** | [`ae-mogrt-essential-graphics`](.agent/skills/ae-mogrt-essential-graphics/SKILL.md) | Tự động hóa Essential Graphics, tham số động Text, Color, Slider |
-| **Character Rigging** | [`ae-character-rigging`](.agent/skills/ae-character-rigging/SKILL.md) | Rigging nhân vật, parenting, null controller & Duik Angela |
-| **Visual Feedback** | [`ae-visual-feedback`](.agent/skills/ae-visual-feedback/SKILL.md) | Xuất preview frame (see-frame), contact sheet, tự sửa lỗi hình ảnh |
-| **Render Pipeline** | [`ae-render-pipeline`](.agent/skills/ae-render-pipeline/SKILL.md) | Xuất video nền bằng aerender không đơ máy, render queue |
+- **Motion Design & Scripting** ([`ae-design-scripting`](.agent/skills/ae-design-scripting/SKILL.md)): Phân tích kịch bản, mạng lưới Node-Procedural, thẩm mỹ & blueprint.
+- **Keyframe & Easing** ([`ae-keyframe-easing`](.agent/skills/ae-keyframe-easing/SKILL.md)): 12 Ease Presets chuẩn hóa, Remotion spring physics, graph retiming.
+- **Shape Operators** ([`ae-shape-operators`](.agent/skills/ae-shape-operators/SKILL.md)): Repeater mảng tròn/lưới, Trim Paths, Merge Paths, Polystar.
+- **Text Animation** ([`ae-text-animation`](.agent/skills/ae-text-animation/SKILL.md)): Kinetic typography, auto RTL/Arabic, range text animators.
+- **Expression Math** ([`ae-expression-math`](.agent/skills/ae-expression-math/SKILL.md)): ToComp, lookAt, responsive text, slider controls & wave math.
+- **Video Tutorial Parser** ([`ae-video-tutorial-parser`](.agent/skills/ae-video-tutorial-parser/SKILL.md)): Bóc tách video tutorial (ffmpeg) & YouTube transcript thành blueprint.
+- **Color Management** ([`ae-color-management`](.agent/skills/ae-color-management/SKILL.md)): Quản lý màu 32-bpc linear, 3D LUT .cube, grading stack.
+- **Asset Interchange** ([`ae-asset-interchange`](.agent/skills/ae-asset-interchange/SKILL.md)): Nhập SVG/AI vector, PSD cropped layers, alpha channel & Lottie.
+- **Audio Reactive** ([`ae-audio-reactive`](.agent/skills/ae-audio-reactive/SKILL.md)): Bắt nhịp beat, audio to keyframes, lọc decay biên độ âm thanh.
+- **MOGRT / Essential Graphics** ([`ae-mogrt-essential-graphics`](.agent/skills/ae-mogrt-essential-graphics/SKILL.md)): Tự động hóa Essential Graphics, tham số động Text, Color, Slider.
+- **Character Rigging** ([`ae-character-rigging`](.agent/skills/ae-character-rigging/SKILL.md)): Rigging nhân vật, parenting, null controller & Duik Angela.
+- **Visual Feedback** ([`ae-visual-feedback`](.agent/skills/ae-visual-feedback/SKILL.md)): Xuất preview frame (see-frame), contact sheet, tự sửa lỗi hình ảnh.
+- **Render Pipeline** ([`ae-render-pipeline`](.agent/skills/ae-render-pipeline/SKILL.md)): Xuất video nền bằng aerender không đơ máy, render queue.
 
 ---
 
 ## 🛡️ Hệ Thống Multi-Agent 3 Tầng (.agent/rules/)
 
-Phân quyền và phối hợp thực thi kịch bản chuyển động:
-
-| Quy chuẩn | Tệp quy chuẩn | Trách nhiệm chính |
-| :--- | :--- | :--- |
-| **Leader AE** | [`.agent/rules/leader-ae.md`](.agent/rules/leader-ae.md) | Art Director: Phân tích đề bài, lập kịch bản & phân rã tasks |
-| **Worker AE** | [`.agent/rules/worker-ae.md`](.agent/rules/worker-ae.md) | Execution Tech: Thực thi công cụ MCP, try-finally Undo Group, tự sửa lỗi |
-| **Design System** | [`.agent/rules/design-system-spec.md`](.agent/rules/design-system-spec.md) | Tiêu chuẩn thiết kế: Hệ màu RGB 0-1, 32-bpc linear, typography, safe zones |
-| **Collaboration Loop** | [`.agent/rules/agent-collaboration-loop.md`](.agent/rules/agent-collaboration-loop.md) | Vòng lặp phối hợp: Atomic Tasks (Setup $\to$ Assembly $\to$ Motion $\to$ QA) |
+- **Leader AE** ([`.agent/rules/leader-ae.md`](.agent/rules/leader-ae.md)): Art Director — Phân tích đề bài, lập kịch bản & phân rã tasks.
+- **Worker AE** ([`.agent/rules/worker-ae.md`](.agent/rules/worker-ae.md)): Execution Tech — Thực thi công cụ MCP, try-finally Undo Group, tự sửa lỗi.
+- **Design System** ([`.agent/rules/design-system-spec.md`](.agent/rules/design-system-spec.md)): Tiêu chuẩn thiết kế — Hệ màu RGB 0-1, 32-bpc linear, typography, safe zones.
+- **Collaboration Loop** ([`.agent/rules/agent-collaboration-loop.md`](.agent/rules/agent-collaboration-loop.md)): Vòng lặp phối hợp — Atomic Tasks (Setup $\to$ Assembly $\to$ Motion $\to$ QA).
 
 ---
 
-## 📊 Danh Mục 167 Tools (15 Nhóm Chức Năng)
+## 🛠️ Danh Mục 167 MCP Tools (15 Nhóm Chức Năng)
 
-| Nhóm chức năng | Số lượng | Công cụ tiêu biểu & Phạm vi |
-| :--- | :---: | :--- |
-| **1. Motion Graphics Templates** | 6 | `create-lower-third`, `create-title-card`, `create-transition`, `create-logo-reveal`... |
-| **2. Vector Shapes & Paths** | 4 | `create-path`, `get-path`, `set-path-keyframes`, `add-shape-operator`... |
-| **3. 3D Space, Camera & Lights** | 7 | `set-3d-layer`, `set-material-options`, `set-camera-options`, `set-light-options`... |
-| **4. Masks & Rotoscoping** | 7 | `add-mask`, `list-masks`, `get-mask-path`, `set-mask-keyframes`, `delete-mask`... |
-| **5. Animation, Springs & Expressions** | 36 | `setLayerKeyframe`, `setLayerExpression`, `apply-spring-animation`, `markers`... |
-| **6. Composition Control** | 12 | `create-composition`, `inspect-comp`, `localize-comp`, `center-layers`... |
-| **7. Layer Operations** | 21 | `create-text-layer`, `add-solid-layer`, `precompose-layers`, `set-layer-parent`... |
-| **8. Effects & Presets** | 16 | `apply-effect`, `add-any-effect`, `apply-preset`, `set-effect-property`... |
-| **9. Project & Asset Management** | 11 | `create-project`, `open-project`, `save-project`, `collect-files`, `reduce-project`... |
-| **10. Footage & Media** | 5 | `import-footage`, `list-project-items`, `relink-footage`, `set-proxy`... |
-| **11. Audio Analysis & Control** | 3 | `analyze-audio-waveform`, `set-audio-levels`, `get-audio-info`... |
-| **12. Visual Feedback & Verification** | 3 | `see-frame`, `contact-sheet`, `match-reference` (AI tự sửa lỗi layout)... |
-| **13. Render Queue & Export** | 11 | `render-aerender` (xuất ngầm không đơ máy), `render-queue`, `queue-in-ame`... |
-| **14. System & ExtendScript Engine** | 6 | `execute-script` (chạy script tùy ý), `check-bridge`, `ae_ping`, `run-script`... |
-| **15. Compatibility Aliases** | 19 | Snake_case aliases (`create_project`, `open_project`, `ae_create_comp`...)... |
-| **Tổng cộng** | **167** | **Bộ công cụ tự động hóa toàn diện cho Adobe After Effects** |
-
----
-
-## 🔍 Chi Tiết Từng Nhóm Tool (Bấm để mở rộng)
-
-<details>
-<summary><b>👉 Bấm vào đây để xem toàn bộ danh sách 167 MCP Tools</b></summary>
+<details open>
+<summary><b>👉 Danh sách toàn bộ 167 MCP Tools (Bấm để thu gọn / mở rộng)</b></summary>
 
 - **1. Motion Graphics Templates (6 tools)**: `create-lower-third`, `create-title-card`, `create-transition`, `create-logo-reveal`, `create-text-animator`, `list-template-styles`
 - **2. Vector Shapes & Paths (4 tools)**: `create-path`, `get-path`, `set-path-keyframes`, `add-shape-operator`
