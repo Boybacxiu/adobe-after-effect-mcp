@@ -329,67 +329,40 @@ if (toolsCount > 0) {
   summary.push({ item: "MCP Tools", status: "WARN" });
 }
 
-// 10. Thử nghiệm Live Ping After Effects (nếu tiến trình đang mở)
-if (isAERunning) {
-  console.log(`${c.info} ${isVi ? "Đang gửi thử lệnh Live Ping tới After Effects..." : "Testing Live Ping to After Effects..."}`);
-  try {
-    const bridgeModule = await import("../build/core/bridge.js");
-    const rawPing = await bridgeModule.sendBridgeCommand("ping", {}, 4000, 100);
-    const parsedPing = JSON.parse(rawPing);
-    if (parsedPing && (parsedPing.pong === true || parsedPing.status === "success")) {
-      const aeVer = parsedPing.aeVersion ? ` (AE: ${parsedPing.aeVersion})` : "";
-      console.log(`${c.ok} Live Ping After Effects: ${colors.green}${colors.bold}${isVi ? "PONG THÀNH CÔNG!" : "PONG SUCCESSFUL!"}${aeVer}${colors.reset}`);
-      summary.push({ item: "Live Ping After Effects", status: isVi ? "PONG (KẾT NỐI TỐT)" : "PONG (CONNECTED)" });
-    } else {
-      console.log(`${c.warn} Live Ping After Effects: ${rawPing}`);
-      summary.push({ item: "Live Ping After Effects", status: isVi ? "CHƯA PHẢN HỒI" : "NO RESPONSE" });
-    }
-  } catch (err) {
-    console.log(`${c.warn} Live Ping After Effects: ${err.message}`);
-    summary.push({ item: "Live Ping After Effects", status: "TIMEOUT / ERROR" });
-  }
-} else {
-  console.log(`${c.info} Live Ping After Effects: ${colors.gray}${isVi ? "Bỏ qua (Do After Effects chưa mở trên máy)" : "Skipped (After Effects is not open)"}${colors.reset}`);
-  summary.push({ item: "Live Ping After Effects", status: isVi ? "BỎ QUA (Cần mở AE)" : "SKIPPED (Open AE)" });
-}
-
-// 11. Hiển thị bảng tổng kết
+// 10. Hiển thị bảng tổng kết trạng thái cài đặt
 console.log("\n" + "-".repeat(65));
-console.log(`${colors.bold}  ${isVi ? "TỔNG KẾT TRẠNG THÁI HỆ THỐNG" : "SYSTEM STATUS SUMMARY"}${colors.reset}`);
+console.log(`${colors.bold}  ${isVi ? "TỔNG KẾT THIẾT LẬP HỆ THỐNG" : "SYSTEM SETUP SUMMARY"}${colors.reset}`);
 console.log("-".repeat(65));
 for (const s of summary) {
   const dotCount = Math.max(2, 45 - s.item.length);
   const dots = colors.gray + ".".repeat(dotCount) + colors.reset;
-  const statusColor = s.status.startsWith("OK") || s.status.includes("ĐANG MỞ") || s.status.includes("CONNECTED") || s.status.includes("RUNNING")
+  const statusColor = s.status.startsWith("OK") || s.status.includes("ĐANG MỞ") || s.status.includes("CONFIGURED") || s.status.includes("RUNNING")
     ? colors.green
     : s.status.includes("CẦN") || s.status.includes("CHƯA") || s.status.includes("ACTION") || s.status.includes("DISABLED") || s.status.includes("NOT")
     ? colors.yellow
     : colors.cyan;
   console.log(`  ${s.item} ${dots} ${statusColor}${colors.bold}${s.status}${colors.reset}`);
 }
-console.log("-".repeat(65));
+console.log("-".repeat(65) + "\n");
 
-// 12. Hướng dẫn cấu hình thủ công nếu cần
-console.log(`\n${colors.cyan}${colors.bold}📋 ${isVi ? "Đoạn mã cấu hình MCP Server cho Client:" : "Client MCP Server Configuration snippet:"}${colors.reset}`);
-console.log(colors.gray + JSON.stringify(mcpConfig, null, 2) + colors.reset);
-
-console.log("\n" + "=".repeat(65));
-if (isAERunning && scriptingPermStatus === "ENABLED" && allPassed) {
-  console.log(`${colors.green}${colors.bold}${isVi ? "🎉 MỌI THỨ ĐÃ SẴN SÀNG! Bạn có thể bắt đầu sử dụng MCP với After Effects ngay bây giờ." : "🎉 ALL SYSTEMS READY! You can now use After Effects MCP directly."}${colors.reset}`);
+console.log("=".repeat(65));
+if (allPassed) {
+  console.log(`${colors.green}${colors.bold}${isVi ? "🎉 THIẾT LẬP & CẤU HÌNH MCP SERVER THÀNH CÔNG!" : "🎉 MCP SERVER SETUP & CONFIGURATION SUCCESSFUL!"}${colors.reset}`);
+  console.log(`\n${colors.cyan}${colors.bold}${isVi ? "👉 BƯỚC TIẾP THEO:" : "👉 NEXT STEPS:"}${colors.reset}`);
+  console.log(`  1. ${isVi ? "Mở phần mềm Adobe After Effects trên máy tính." : "Launch Adobe After Effects on your computer."}`);
+  console.log(`  2. ${isVi ? "Khởi động lại Claude Desktop hoặc Cursor để nạp cấu hình mới." : "Restart Claude Desktop or Cursor to reload configuration."}`);
+  console.log(`  3. ${isVi ? "Nhấp đúp vào 'test-ping.cmd' để kiểm tra kết nối Live Ping và xem 167 tools." : "Double-click 'test-ping.cmd' to verify Live Ping connection & view 167 tools."}`);
 } else {
-  console.log(`${colors.yellow}${colors.bold}${isVi ? "👉 HƯỚNG DẪN BỔ SUNG & LÀM LẠI:" : "👉 ACTION ITEMS & TROUBLESHOOTING:"}${colors.reset}`);
+  console.log(`${colors.yellow}${colors.bold}${isVi ? "👉 HƯỚNG DẪN XỬ LÝ & HOÀN TẤT:" : "👉 ACTION ITEMS & TROUBLESHOOTING:"}${colors.reset}`);
   let step = 1;
   if (detectedAE.length === 0) {
     console.log(`  ${step++}. ${isVi ? "Cài đặt phần mềm Adobe After Effects (2020 đến 2025+) nếu máy chưa có." : "Install Adobe After Effects (2020 to 2025+) if not yet installed."}`);
-  }
-  if (!isAERunning) {
-    console.log(`  ${step++}. ${isVi ? "Mở phần mềm Adobe After Effects trên máy." : "Launch Adobe After Effects on your computer."}`);
   }
   if (scriptingPermStatus !== "ENABLED") {
     console.log(`  ${step++}. ${isVi ? "Trong After Effects: Vào Edit > Preferences > Scripting & Expressions" : "In After Effects: Go to Edit > Preferences > Scripting & Expressions"}`);
     console.log(`     -> ${isVi ? "Tích chọn: 'Allow Scripts to Write Files and Access Network' rồi khởi động lại AE." : "Check: 'Allow Scripts to Write Files and Access Network' and restart AE."}`);
   }
   console.log(`  ${step++}. ${isVi ? "Khởi động lại ứng dụng Claude Desktop hoặc Cursor để nạp cấu hình MCP." : "Restart Claude Desktop or Cursor to reload MCP server configuration."}`);
-  console.log(`\n${colors.cyan}${colors.bold}  🔄 ${isVi ? "SAU ĐÓ: Hãy chạy lại file setup.cmd để hệ thống kiểm tra xác nhận lại 100%!" : "THEN: Run setup.cmd again to verify everything 100%!"}${colors.reset}`);
+  console.log(`\n${colors.cyan}${colors.bold}  🔄 ${isVi ? "SAU ĐÓ: Bạn có thể nhấp đúp 'test-ping.cmd' để kiểm tra kết nối trực tiếp." : "THEN: Double-click 'test-ping.cmd' to verify the live connection."}${colors.reset}`);
 }
 console.log("=".repeat(65) + "\n");
