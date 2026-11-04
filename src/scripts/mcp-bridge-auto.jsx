@@ -4653,11 +4653,20 @@ function logToPanel(message) {
     }
 }
 
-var checkInterval = 100;
+var currentPollDelay = 100;
 
 function scheduleNextPoll(delayMs) {
-    if (!$.global || $.global.mcpCheckTaskId == null) {
-        startCommandChecker();
+    try {
+        if ($.global && $.global.mcpCheckTaskId != null) {
+            app.cancelTask($.global.mcpCheckTaskId);
+            $.global.mcpCheckTaskId = null;
+        }
+    } catch (e) {}
+    var d = delayMs || currentPollDelay;
+    try {
+        $.global.mcpCheckTaskId = app.scheduleTask("if ($.global && $.global.checkForCommands) { $.global.checkForCommands(); }", d, false);
+    } catch (stErr) {
+        // Fallback for headless environments
     }
 }
 
@@ -4684,6 +4693,7 @@ function checkForCommands() {
                         lastProcessedCommandId = commandKey;
                         logToPanel("Command '" + (commandData.command || "") + "' (" + commandKey + ") expired before execution. Skipping.");
                         isChecking = false;
+                        scheduleNextPoll(50);
                         return;
                     }
                     lastProcessedCommandId = commandKey;
@@ -4696,6 +4706,7 @@ function checkForCommands() {
         logToPanel("Error checking for commands: " + e.toString());
     } finally {
         isChecking = false;
+        scheduleNextPoll(currentPollDelay);
     }
 }
 
@@ -4719,18 +4730,8 @@ function initLastProcessedCommand() {
 }
 
 function startCommandChecker() {
-    try {
-        if ($.global && $.global.mcpCheckTaskId != null) {
-            app.cancelTask($.global.mcpCheckTaskId);
-            $.global.mcpCheckTaskId = null;
-        }
-    } catch (e) {}
-    try {
-        $.global.mcpCheckTaskId = app.scheduleTask("if ($.global && $.global.checkForCommands) { $.global.checkForCommands(); }", checkInterval, true);
-        logToPanel("MCP persistent background listener scheduled (repeating " + checkInterval + "ms).");
-    } catch (stErr) {
-        // Fallback for headless environments
-    }
+    scheduleNextPoll(100);
+    logToPanel("MCP background listener activated (100ms interval).");
 }
 
 // Export functions to globalScope so app.scheduleTask() can always invoke them
