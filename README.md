@@ -29,6 +29,8 @@ Thực hiện theo các bước đơn giản dưới đây để thiết lập v
 * **Thiết lập lần đầu**: Nhấp đúp vào [`setup.cmd`](setup.cmd) (hoặc gõ `setup.cmd` trong terminal). Hệ thống sẽ tự động kiểm tra môi trường, cài đặt dependencies, biên dịch mã nguồn, cài Bridge vào thư mục Startup của After Effects và tự động cấu hình cho Claude Desktop & Cursor.
 * **Kiểm tra nhanh hàng ngày**: Nhấp đúp vào [`test-ping.cmd`](test-ping.cmd) (hoặc gõ `npm run ping` trong terminal) để gửi Live Ping tới After Effects trong < 1 giây và xem dashboard toàn bộ 167 tools.
 
+> 🌐 **Tự động nhận diện ngôn ngữ (Auto Language Detection)**: Cả hai tệp `setup.cmd` và `test-ping.cmd` tự động thích ứng với ngôn ngữ hệ thống máy tính (hiển thị Tiếng Việt trên máy Tiếng Việt, Tiếng Anh trên máy Quốc tế / English; hoặc truyền cờ `--lang=vi` / `--lang=en` nếu muốn chỉ định).
+
 #### Cách 2: Thiết Lập Thủ Công (Windows & macOS)
 ```bash
 npm install             # 1. Cài đặt thư viện dependencies
