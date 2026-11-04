@@ -17,33 +17,64 @@ A high-performance, modular Model Context Protocol (MCP) Server for Adobe After 
 
 ---
 
-## ⚡ Quick Start & Setup
+## ⚡ Hướng Dẫn Cài Đặt & Kết Nối Trên Máy Mới (Quick Setup & Migration Guide)
 
-### 1. Build & Install
+Khi chuyển sang máy tính mới hoặc vừa clone repository về, bạn thực hiện theo 4 mục đơn giản dưới đây:
+
+### Mục 1: Yêu Cầu Chuẩn Bị Trên Máy Mới (Prerequisites)
+1. **Adobe After Effects**: Phiên bản bất kỳ từ **2020 đến 2025+** (v17.x – v25.x) trên Windows hoặc macOS.
+2. **Node.js**: Phiên bản **>= 18.0.0** (Tải tại [nodejs.org](https://nodejs.org/)).
+3. **Git**: Để clone repository về máy.
+
+---
+
+### Mục 2: Cài Đặt & Kết Nối Tự Động (One-Click Setup)
+
+#### Cách 1: Chạy 1-Click Script (Khuyên dùng cho Windows)
+Người dùng chỉ cần **nhấp đúp** vào file [`setup.cmd`](setup.cmd) (hoặc gõ `setup.cmd` trong terminal):
+* Tự động kiểm tra Node.js và môi trường hệ thống.
+* Tự động cài đặt dependencies (`npm install`) nếu chưa có.
+* Tự động biên dịch mã nguồn (`npm run build`).
+* Tự động cài đặt Background Bridge (`mcp-bridge-auto.jsx`) vào thư mục `Scripts/Startup/` của tất cả phiên bản After Effects tìm thấy trên máy.
+* Quét và phát hiện trạng thái After Effects (đang mở hay chưa) và kiểm tra quyền Scripting Preferences.
+* Tự động cấu hình MCP Client cho **Claude Desktop** và **Cursor / Antigravity / Windsurf**.
+
+#### Cách 2: Thiết Lập Thủ Công (Windows & macOS)
 ```bash
+# 1. Cài đặt thư viện dependencies
 npm install
+
+# 2. Biên dịch TypeScript sang JavaScript
 npm run build
-npm run install-bridge   # Tự động copy mcp-bridge-auto.jsx vào Scripts/Startup/
+
+# 3. Tự động sao chép Bridge Listener vào thư mục Startup của After Effects
+npm run install-bridge
+
+# 4. Kiểm tra sức khỏe hệ thống & chẩn đoán kết nối
+npm run doctor
 ```
 
-### 2. After Effects Setting
-Mở After Effects > **Edit > Preferences > Scripting & Expressions** > Tích chọn **"Allow Scripts to Write Files and Access Network"**. Khởi động lại After Effects (Bridge chạy ngầm tự động 100%, không cần mở UI panel).
+---
 
-### 3. MCP Client Configuration
+### Mục 3: Cài Đặt Bắt Buộc Phải Bật Trong After Effects
 
-#### Claude Desktop (`claude_desktop_config.json`)
-```json
-{
-  "mcpServers": {
-    "adobe-after-effects": {
-      "command": "node",
-      "args": ["/path/to/adobe-after-effect-mcp/build/index.js"]
-    }
-  }
-}
-```
+Đây là thiết lập **bắt buộc duy nhất** để After Effects cho phép AI giao tiếp qua Background IPC:
+1. Mở phần mềm **Adobe After Effects**.
+2. Mở cửa sổ Preferences:
+   * **Windows**: `Edit` > `Preferences` > `Scripting & Expressions...`
+   * **macOS**: `After Effects` > `Settings` > `Scripting & Expressions...`
+3. Tích chọn vào ô:
+   * ☑️ **"Allow Scripts to Write Files and Access Network"** *(Cho phép script ghi tệp và truy cập mạng)*.
+4. Bấm **OK** và khởi động lại After Effects một lần.
 
-#### Cursor / Antigravity / Windsurf (`.mcp.json`)
+> **Quy tắc sử dụng hàng ngày**: Trước khi bắt đầu làm việc với AI, bạn chỉ cần **mở After Effects lên trước**. Background Bridge sẽ tự động kích hoạt ngầm, không cần mở panel hay thao tác thủ công.
+
+---
+
+### Mục 4: Cấu Hình MCP Client (Claude Desktop & Cursor)
+
+#### A. Cursor / Antigravity / Windsurf
+Repository đã tích hợp sẵn tệp cấu hình [`.mcp.json`](.mcp.json) ở thư mục gốc. Khi bạn mở thư mục này trong Cursor hoặc Antigravity, trình soạn thảo sẽ tự động nhận diện MCP server:
 ```json
 {
   "mcpServers": {
@@ -54,6 +85,24 @@ Mở After Effects > **Edit > Preferences > Scripting & Expressions** > Tích ch
   }
 }
 ```
+
+#### B. Claude Desktop
+Khi chạy `setup.cmd` hoặc `npm run doctor`, hệ thống sẽ **tự động phát hiện và thêm cấu hình** vào tệp `claude_desktop_config.json`. Nếu cần cấu hình thủ công:
+* **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+* **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
+Thêm cấu hình (sử dụng đường dẫn tuyệt đối với dấu gạch chéo `/`):
+```json
+{
+  "mcpServers": {
+    "adobe-after-effects": {
+      "command": "node",
+      "args": ["<ĐƯỜNG_DẪN_TUYỆT_ĐỐI_TỚI_REPO>/build/index.js"]
+    }
+  }
+}
+```
+*(Sau khi thêm, khởi động lại Claude Desktop để kích hoạt toàn bộ 167 tools).*
 
 ---
 

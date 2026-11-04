@@ -12,6 +12,8 @@
     "start": "node build/index.js",
     "dev": "tsc --watch",
     "install-bridge": "node install-bridge.js",
+    "doctor": "node setup-check.js",
+    "setup": "node setup-check.js",
     "test": "node test/verify-build.js"
   },
   "dependencies": {
