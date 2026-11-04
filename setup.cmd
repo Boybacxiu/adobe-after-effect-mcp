@@ -34,7 +34,7 @@ echo.
 node scripts\setup-check.js %*
 
 echo.
-node -e "const isVi = Intl.DateTimeFormat().resolvedOptions().locale.startsWith('vi'); process.stdout.write(isVi ? 'Nhan phim bat ky de thoat...' : 'Press any key to exit...');"
+node -e "import('./scripts/lang-detect.js').then(m => process.stdout.write(m.detectSystemLanguage() === 'vi' ? 'Nhan phim bat ky de thoat...' : 'Press any key to exit...'))"
 pause > nul
 exit /b 0
 

@@ -2,26 +2,13 @@ import { execSync } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import { detectSystemLanguage } from "./lang-detect.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 
-// Auto-detect system language (Vietnamese vs English/International)
-function detectLocale() {
-  const arg = process.argv.find((a) => a.startsWith("--lang="))?.split("=")[1]?.toLowerCase();
-  if (arg === "vi" || arg === "en") return arg;
-  if (process.env.MCP_LANG === "vi" || process.env.MCP_LANG === "en") return process.env.MCP_LANG;
-  try {
-    const loc = Intl.DateTimeFormat().resolvedOptions().locale.toLowerCase();
-    if (loc.startsWith("vi")) return "vi";
-  } catch {}
-  const env = (process.env.LANG || process.env.LC_ALL || process.env.LANGUAGE || "").toLowerCase();
-  if (env.startsWith("vi")) return "vi";
-  return "en";
-}
-
-const lang = detectLocale();
+const lang = detectSystemLanguage();
 const isVi = lang === "vi";
 
 // ANSI color codes
