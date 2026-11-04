@@ -220,8 +220,11 @@ if (bridgeInstalled) {
   }
 }
 
-// 7. Cấu hình MCP Client cho Cursor / Antigravity / Windsurf (.mcp.json)
+// 7. Cấu hình MCP Client cho Cursor / Antigravity / Windsurf (.mcp.json & .cursor/mcp.json)
 const localMcpPath = path.join(__dirname, ".mcp.json");
+const cursorMcpDir = path.join(__dirname, ".cursor");
+const cursorMcpPath = path.join(cursorMcpDir, "mcp.json");
+
 const mcpConfig = {
   mcpServers: {
     "adobe-after-effects": {
@@ -233,10 +236,14 @@ const mcpConfig = {
 
 try {
   fs.writeFileSync(localMcpPath, JSON.stringify(mcpConfig, null, 2) + "\n", "utf8");
-  console.log(`${c.ok} Cấu hình Cursor / Antigravity / Windsurf: ${colors.green}File .mcp.json đã sẵn sàng${colors.reset}`);
+  if (!fs.existsSync(cursorMcpDir)) {
+    fs.mkdirSync(cursorMcpDir, { recursive: true });
+  }
+  fs.writeFileSync(cursorMcpPath, JSON.stringify(mcpConfig, null, 2) + "\n", "utf8");
+  console.log(`${c.ok} Cấu hình Cursor / Antigravity / Windsurf: ${colors.green}File .mcp.json & .cursor/mcp.json đã sẵn sàng${colors.reset}`);
   summary.push({ item: "Cursor / Antigravity (.mcp.json)", status: "OK" });
 } catch (err) {
-  console.log(`${c.warn} Không thể ghi .mcp.json: ${err.message}`);
+  console.log(`${c.warn} Không thể ghi file cấu hình MCP local: ${err.message}`);
   summary.push({ item: "Cursor / Antigravity (.mcp.json)", status: "WARN" });
 }
 
