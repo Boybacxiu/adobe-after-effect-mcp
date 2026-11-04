@@ -4653,28 +4653,17 @@ function logToPanel(message) {
     }
 }
 
-var currentPollDelay = 250;
-var consecutiveIdleCount = 0;
+var checkInterval = 100;
 
 function scheduleNextPoll(delayMs) {
-    try {
-        if ($.global && $.global.mcpCheckTaskId != null) {
-            app.cancelTask($.global.mcpCheckTaskId);
-            $.global.mcpCheckTaskId = null;
-        }
-    } catch (e) {}
-    var d = delayMs || currentPollDelay;
-    try {
-        $.global.mcpCheckTaskId = app.scheduleTask("if ($.global.checkForCommands) { $.global.checkForCommands(); }", d, false);
-    } catch (stErr) {
-        // Fallback for headless environments
+    if (!$.global || $.global.mcpCheckTaskId == null) {
+        startCommandChecker();
     }
 }
 
 function checkForCommands() {
     if (isChecking) return;
     isChecking = true;
-    var hadAction = false;
     
     try {
         var commandFile = new File(getCommandFilePath());
@@ -4691,12 +4680,10 @@ function checkForCommands() {
 
                 var commandKey = commandData.commandId || commandData.timestamp || "";
                 if (commandKey && commandKey !== lastProcessedCommandId) {
-                    hadAction = true;
                     if (commandData.expiresAt && (new Date().getTime() > Number(commandData.expiresAt))) {
                         lastProcessedCommandId = commandKey;
                         logToPanel("Command '" + (commandData.command || "") + "' (" + commandKey + ") expired before execution. Skipping.");
                         isChecking = false;
-                        scheduleNextPoll(60);
                         return;
                     }
                     lastProcessedCommandId = commandKey;
@@ -4709,15 +4696,6 @@ function checkForCommands() {
         logToPanel("Error checking for commands: " + e.toString());
     } finally {
         isChecking = false;
-        // Optimized adaptive polling: 50ms when active, back off to 100ms when idle
-        if (hadAction) {
-            consecutiveIdleCount = 0;
-            currentPollDelay = 50;
-        } else {
-            consecutiveIdleCount++;
-            currentPollDelay = consecutiveIdleCount > 20 ? 100 : 50;
-        }
-        scheduleNextPoll(currentPollDelay);
     }
 }
 
@@ -4741,10 +4719,18 @@ function initLastProcessedCommand() {
 }
 
 function startCommandChecker() {
-    consecutiveIdleCount = 0;
-    currentPollDelay = 50;
-    scheduleNextPoll(50);
-    logToPanel("MCP adaptive background listener activated (50ms-100ms).");
+    try {
+        if ($.global && $.global.mcpCheckTaskId != null) {
+            app.cancelTask($.global.mcpCheckTaskId);
+            $.global.mcpCheckTaskId = null;
+        }
+    } catch (e) {}
+    try {
+        $.global.mcpCheckTaskId = app.scheduleTask("if ($.global && $.global.checkForCommands) { $.global.checkForCommands(); }", checkInterval, true);
+        logToPanel("MCP persistent background listener scheduled (repeating " + checkInterval + "ms).");
+    } catch (stErr) {
+        // Fallback for headless environments
+    }
 }
 
 // Export functions to globalScope so app.scheduleTask() can always invoke them

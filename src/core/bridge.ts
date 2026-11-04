@@ -364,7 +364,12 @@ export async function executeExtendScript(
   const projectRootNormalized = PROJECT_ROOT.replace(/\\/g, "/");
 
   // Auto-resolve relative Duik paths written as "plugins/Duik-Angela/..."
-  const resolvedScript = script.replace(/plugins\/Duik-Angela\//g, `${duikNormalized}/`);
+  let resolvedScript = script.replace(/plugins\/Duik-Angela\//g, `${duikNormalized}/`).trim();
+
+  // Ensure trailing expression is returned so ExtendScript eval returns the object instead of undefined
+  if (!/^\s*return\b/m.test(resolvedScript) && !/;\s*return\b/m.test(resolvedScript)) {
+    resolvedScript = resolvedScript.replace(/([a-zA-Z0-9_$.()\[\]'"]+)\s*;\s*$/, "return $1;");
+  }
 
   const preamble = `
 var PROJECT_ROOT = "${projectRootNormalized}";

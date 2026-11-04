@@ -234,7 +234,7 @@ export function generateResultObject(properties: Record<string, string>): string
       script += 'result["' + escapeString(key) + '"] = ' + properties[key] + ';\n';
     }
   }
-  script += 'result;\n';
+  script += 'return result;\n';
   return script;
 }
 

@@ -133,7 +133,7 @@ export function generateGetProjectInfo(): string {
   script += 'projectInfo.footageItems = footageCount;\n';
   script += 'projectInfo.folders = folderCount;\n';
 
-  script += 'projectInfo;\n';
+  script += 'return projectInfo;\n';
 
   return script;
 }
