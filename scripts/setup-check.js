@@ -301,7 +301,52 @@ for (const claudeConfigFile of claudeConfigFiles) {
 }
 summary.push({ item: "Claude Desktop", status: claudeStatus });
 
-// 9. Hiển thị bảng tổng kết
+// 9. Kiểm tra và đếm danh sách MCP Tools đã biên dịch
+let toolsCount = 0;
+try {
+  const toolsModule = await import("../build/tools/index.js");
+  if (typeof toolsModule.registerAllTools === "function") {
+    const list = [];
+    toolsModule.registerAllTools({ tool: (n) => list.push(n) });
+    toolsCount = list.length;
+  }
+} catch (err) {
+  // Bỏ qua nếu chưa build
+}
+
+if (toolsCount > 0) {
+  console.log(`${c.ok} Danh sách MCP Tools: ${colors.green}${colors.bold}${toolsCount} tools${colors.reset} sẵn sàng.`);
+  summary.push({ item: `MCP Tools (${toolsCount} tools)`, status: "OK" });
+} else {
+  console.log(`${c.warn} Danh sách MCP Tools: Chưa nạp được tools.`);
+  summary.push({ item: "MCP Tools", status: "WARN" });
+}
+
+// 10. Thử nghiệm Live Ping After Effects (nếu tiến trình đang mở)
+if (isAERunning) {
+  console.log(`${c.info} Đang gửi thử lệnh Live Ping tới After Effects...`);
+  try {
+    const bridgeModule = await import("../build/core/bridge.js");
+    const rawPing = await bridgeModule.sendBridgeCommand("ping", {}, 4000, 100);
+    const parsedPing = JSON.parse(rawPing);
+    if (parsedPing && (parsedPing.pong === true || parsedPing.status === "success")) {
+      const aeVer = parsedPing.aeVersion ? ` (AE: ${parsedPing.aeVersion})` : "";
+      console.log(`${c.ok} Live Ping After Effects: ${colors.green}${colors.bold}PONG THÀNH CÔNG!${aeVer}${colors.reset}`);
+      summary.push({ item: "Live Ping After Effects", status: "PONG (KẾT NỐI TỐT)" });
+    } else {
+      console.log(`${c.warn} Live Ping After Effects: Chưa nhận phản hồi hợp lệ: ${rawPing}`);
+      summary.push({ item: "Live Ping After Effects", status: "CHƯA PHẢN HỒI" });
+    }
+  } catch (err) {
+    console.log(`${c.warn} Live Ping After Effects: Không thể ping: ${err.message}`);
+    summary.push({ item: "Live Ping After Effects", status: "TIMEOUT / LỖI" });
+  }
+} else {
+  console.log(`${c.info} Live Ping After Effects: ${colors.gray}Bỏ qua (Do After Effects chưa mở trên máy)${colors.reset}`);
+  summary.push({ item: "Live Ping After Effects", status: "BỎ QUA (Cần mở AE)" });
+}
+
+// 11. Hiển thị bảng tổng kết
 console.log("\n" + "-".repeat(65));
 console.log(`${colors.bold}  TỔNG KẾT TRẠNG THÁI HỆ THỐNG${colors.reset}`);
 console.log("-".repeat(65));
