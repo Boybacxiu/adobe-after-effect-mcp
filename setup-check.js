@@ -241,15 +241,29 @@ try {
 }
 
 // 8. Tự động cấu hình cho Claude Desktop
-const claudeConfigDir = isWindows
-  ? path.join(process.env.APPDATA || "", "Claude")
-  : isMac
-  ? path.join(os.homedir(), "Library", "Application Support", "Claude")
-  : null;
+const claudeConfigFiles = [];
+if (isWindows) {
+  if (process.env.APPDATA) {
+    claudeConfigFiles.push(path.join(process.env.APPDATA, "Claude", "claude_desktop_config.json"));
+  }
+  if (process.env.LOCALAPPDATA) {
+    const packagesDir = path.join(process.env.LOCALAPPDATA, "Packages");
+    if (fs.existsSync(packagesDir)) {
+      try {
+        const pkgs = fs.readdirSync(packagesDir).filter((p) => p.toLowerCase().startsWith("claude_"));
+        for (const pkg of pkgs) {
+          claudeConfigFiles.push(path.join(packagesDir, pkg, "LocalCache", "Roaming", "Claude", "claude_desktop_config.json"));
+        }
+      } catch {}
+    }
+  }
+} else if (isMac) {
+  claudeConfigFiles.push(path.join(os.homedir(), "Library", "Application Support", "Claude", "claude_desktop_config.json"));
+}
 
 let claudeStatus = "NOT INSTALLED";
-if (claudeConfigDir) {
-  const claudeConfigFile = path.join(claudeConfigDir, "claude_desktop_config.json");
+for (const claudeConfigFile of claudeConfigFiles) {
+  const claudeConfigDir = path.dirname(claudeConfigFile);
   try {
     let existingConfig = { mcpServers: {} };
     if (fs.existsSync(claudeConfigFile)) {
@@ -259,8 +273,10 @@ if (claudeConfigDir) {
       } catch {
         existingConfig = { mcpServers: {} };
       }
-    } else if (!fs.existsSync(claudeConfigDir)) {
+    } else if (fs.existsSync(path.dirname(claudeConfigDir))) {
       fs.mkdirSync(claudeConfigDir, { recursive: true });
+    } else {
+      continue;
     }
 
     existingConfig.mcpServers["adobe-after-effects"] = {
@@ -272,8 +288,7 @@ if (claudeConfigDir) {
     console.log(`${c.ok} Cấu hình Claude Desktop: ${colors.green}Đã tự động kết nối vào ${claudeConfigFile}${colors.reset}`);
     claudeStatus = "OK (ĐÃ CẤU HÌNH)";
   } catch (err) {
-    console.log(`${c.warn} Claude Desktop: Không thể tự động ghi file cấu hình (${err.message}).`);
-    claudeStatus = "CẦN CẤU HÌNH THỦ CÔNG";
+    console.log(`${c.warn} Claude Desktop: Không thể ghi file ${claudeConfigFile} (${err.message}).`);
   }
 }
 summary.push({ item: "Claude Desktop", status: claudeStatus });
