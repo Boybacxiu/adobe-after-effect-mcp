@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, "..");
 
 const isMac = process.platform === "darwin";
 const isWindows = process.platform === "win32";
@@ -19,8 +20,8 @@ const possibleAppPaths = isMac
       ...(pf !== "C:\\Program Files" ? years.map((y) => `C:\\Program Files\\Adobe\\Adobe After Effects ${y}`) : []),
     ];
 
-const sourceScript = path.join(__dirname, "build", "scripts", "mcp-bridge-auto.jsx");
-const runnerSource = path.join(__dirname, "build", "scripts", "cli-runner.jsx");
+const sourceScript = path.join(PROJECT_ROOT, "build", "scripts", "mcp-bridge-auto.jsx");
+const runnerSource = path.join(PROJECT_ROOT, "build", "scripts", "cli-runner.jsx");
 
 function collectStartupDestinations() {
   const destinations = [];

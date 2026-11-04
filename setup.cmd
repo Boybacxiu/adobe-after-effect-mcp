@@ -36,7 +36,7 @@ echo.
 :: 5. Chay kiem tra chi tiet he thong, bridge va cau hinh Client
 echo [3/3] Dang kiem tra ket noi After Effects va thiet lap Client...
 echo.
-node setup-check.js
+node scripts\setup-check.js
 
 echo.
 echo Nhan phim bat ky de thoat...

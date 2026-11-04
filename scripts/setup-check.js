@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, "..");
 
 const isWindows = process.platform === "win32";
 const isMac = process.platform === "darwin";
@@ -48,8 +49,8 @@ if (majorVersion >= 18) {
 }
 
 // 2. Kiểm tra bản build dự án
-const buildIndexPath = path.join(__dirname, "build", "index.js");
-const buildScriptPath = path.join(__dirname, "build", "scripts", "mcp-bridge-auto.jsx");
+const buildIndexPath = path.join(PROJECT_ROOT, "build", "index.js");
+const buildScriptPath = path.join(PROJECT_ROOT, "build", "scripts", "mcp-bridge-auto.jsx");
 const normalizedIndexPath = buildIndexPath.replace(/\\/g, "/");
 
 if (fs.existsSync(buildIndexPath) && fs.existsSync(buildScriptPath)) {
@@ -58,7 +59,7 @@ if (fs.existsSync(buildIndexPath) && fs.existsSync(buildScriptPath)) {
 } else {
   console.log(`${c.warn} Bản build MCP Server: ${colors.yellow}Chưa build hoặc thiếu file. Đang tự động build...${colors.reset}`);
   try {
-    execSync("npm run build", { cwd: __dirname, stdio: "inherit" });
+    execSync("npm run build", { cwd: PROJECT_ROOT, stdio: "inherit" });
     console.log(`${c.ok} Bản build MCP Server: Đã build thành công.`);
     summary.push({ item: "Bản build MCP Server", status: "OK" });
   } catch (err) {
@@ -211,7 +212,7 @@ if (bridgeInstalled) {
 } else {
   console.log(`${c.warn} Background Bridge: Chưa được copy vào thư mục Startup. Đang tiến hành cài đặt...`);
   try {
-    execSync("node install-bridge.js", { cwd: __dirname, stdio: "inherit" });
+    execSync("node scripts/install-bridge.js", { cwd: PROJECT_ROOT, stdio: "inherit" });
     bridgeInstalled = true;
     summary.push({ item: "MCP Bridge Startup Script", status: "OK (Vừa cài đặt)" });
   } catch (err) {
@@ -221,8 +222,8 @@ if (bridgeInstalled) {
 }
 
 // 7. Cấu hình MCP Client cho Cursor / Antigravity / Windsurf (.mcp.json & .cursor/mcp.json)
-const localMcpPath = path.join(__dirname, ".mcp.json");
-const cursorMcpDir = path.join(__dirname, ".cursor");
+const localMcpPath = path.join(PROJECT_ROOT, ".mcp.json");
+const cursorMcpDir = path.join(PROJECT_ROOT, ".cursor");
 const cursorMcpPath = path.join(cursorMcpDir, "mcp.json");
 
 const mcpConfig = {
