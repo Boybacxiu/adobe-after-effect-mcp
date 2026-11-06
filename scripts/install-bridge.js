@@ -1,5 +1,6 @@
 import { execSync } from "child_process";
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
 import { fileURLToPath } from "url";
 
@@ -27,7 +28,7 @@ function collectStartupDestinations() {
   const destinations = [];
   const cleanupPanels = [];
 
-  // 1. Per-User AppData Destinations (Windows)
+  // 1. Per-User Destinations (Windows & macOS)
   if (isWindows && process.env.APPDATA) {
     const aeRoot = path.join(process.env.APPDATA, "Adobe", "After Effects");
     if (fs.existsSync(aeRoot)) {
@@ -39,6 +40,23 @@ function collectStartupDestinations() {
           destinations.push(path.join(startupDir, "mcp-bridge-auto.jsx"));
 
           // Old ScriptUI panel to clean up
+          const oldPanel = path.join(versionRoot, "Scripts", "ScriptUI Panels", "mcp-bridge-auto.jsx");
+          if (fs.existsSync(oldPanel)) {
+            cleanupPanels.push(oldPanel);
+          }
+        }
+      }
+    }
+  } else if (isMac) {
+    const userAeRoot = path.join(os.homedir(), "Library", "Preferences", "Adobe", "After Effects");
+    if (fs.existsSync(userAeRoot)) {
+      for (const versionDir of fs.readdirSync(userAeRoot)) {
+        if (versionDir === "Logs") continue;
+        const versionRoot = path.join(userAeRoot, versionDir);
+        if (fs.statSync(versionRoot).isDirectory()) {
+          const startupDir = path.join(versionRoot, "Scripts", "Startup");
+          destinations.push(path.join(startupDir, "mcp-bridge-auto.jsx"));
+
           const oldPanel = path.join(versionRoot, "Scripts", "ScriptUI Panels", "mcp-bridge-auto.jsx");
           if (fs.existsSync(oldPanel)) {
             cleanupPanels.push(oldPanel);

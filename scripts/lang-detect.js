@@ -48,7 +48,25 @@ export function detectSystemLanguage() {
     } catch {}
   }
 
-  // 4. macOS / Linux: Check UI display language environment variables
+  // 4. macOS: Check AppleLanguages preference
+  if (process.platform === "darwin") {
+    try {
+      const macLang = execSync("defaults read -g AppleLanguages", {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "ignore"],
+        timeout: 1500,
+      }).toLowerCase();
+      const match = macLang.match(/"([a-z]{2}(?:-[a-z]{2,4})?)"/i);
+      if (match) {
+        if (match[1].toLowerCase().startsWith("vi")) {
+          return "vi";
+        }
+        return "en";
+      }
+    } catch {}
+  }
+
+  // 5. Unix / Terminal fallback: Check UI display language environment variables
   const envLang = (process.env.LANGUAGE || process.env.LC_ALL || process.env.LC_MESSAGES || process.env.LANG || "").toLowerCase();
   if (envLang.startsWith("vi")) {
     return "vi";

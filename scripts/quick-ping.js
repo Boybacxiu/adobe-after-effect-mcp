@@ -47,7 +47,10 @@ try {
     const output = execSync('tasklist /FI "IMAGENAME eq AfterFX.exe" /NH', { encoding: "utf8" });
     isAERunning = output.toLowerCase().includes("afterfx.exe");
   } else if (isMac) {
-    const output = execSync('pgrep -f "After Effects" || true', { encoding: "utf8" });
+    const output = execSync('pgrep -f "After Effects" || true', {
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "ignore"],
+    });
     isAERunning = output.trim().length > 0;
   }
 } catch {

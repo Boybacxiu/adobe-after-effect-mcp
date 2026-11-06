@@ -117,8 +117,15 @@ try {
     const output = execSync('tasklist /FI "IMAGENAME eq AfterFX.exe" /NH', { encoding: "utf8" });
     isAERunning = output.toLowerCase().includes("afterfx.exe");
   } else if (isMac) {
-    const output = execSync('pgrep -f "After Effects" || true', { encoding: "utf8" });
-    isAERunning = output.trim().length > 0;
+    try {
+      const output = execSync('pgrep -f "After Effects"', {
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "ignore"],
+      });
+      isAERunning = output.trim().length > 0;
+    } catch {
+      isAERunning = false;
+    }
   }
 } catch {
   isAERunning = false;
@@ -163,6 +170,34 @@ try {
         }
       }
     }
+  } else if (isMac) {
+    const aePrefsRoot = path.join(os.homedir(), "Library", "Preferences", "Adobe", "After Effects");
+    if (fs.existsSync(aePrefsRoot)) {
+      const versions = fs.readdirSync(aePrefsRoot).filter((v) => {
+        try {
+          return fs.statSync(path.join(aePrefsRoot, v)).isDirectory() && v !== "Logs";
+        } catch {
+          return false;
+        }
+      });
+
+      for (const v of versions) {
+        const vDir = path.join(aePrefsRoot, v);
+        const files = fs.readdirSync(vDir).filter((f) => f.includes("Prefs") && f.endsWith(".txt"));
+        for (const file of files) {
+          const prefsFile = path.join(vDir, file);
+          const content = fs.readFileSync(prefsFile, "utf8");
+          const match = content.match(/"Pref_SCRIPTING_FILE_NETWORK_SECURITY"\s*=\s*"([01])"/);
+          if (match) {
+            const isAllowed = match[1] === "1";
+            checkedPrefs.push({ version: v, isAllowed });
+            if (isAllowed) scriptingPermStatus = "ENABLED";
+            else if (scriptingPermStatus !== "ENABLED") scriptingPermStatus = "DISABLED";
+            break;
+          }
+        }
+      }
+    }
   }
 } catch {
   // Ignore pref parsing issues
@@ -203,12 +238,22 @@ if (isWindows && process.env.APPDATA) {
 }
 
 if (!bridgeInstalled) {
-  const pf = process.env.ProgramFiles || "C:\\Program Files";
-  for (const y of years) {
-    const startupScript = path.join(pf, "Adobe", `Adobe After Effects ${y}`, "Support Files", "Scripts", "Startup", "mcp-bridge-auto.jsx");
-    if (fs.existsSync(startupScript)) {
-      bridgeInstalled = true;
-      break;
+  if (isWindows) {
+    const pf = process.env.ProgramFiles || "C:\\Program Files";
+    for (const y of years) {
+      const startupScript = path.join(pf, "Adobe", `Adobe After Effects ${y}`, "Support Files", "Scripts", "Startup", "mcp-bridge-auto.jsx");
+      if (fs.existsSync(startupScript)) {
+        bridgeInstalled = true;
+        break;
+      }
+    }
+  } else if (isMac) {
+    for (const y of years) {
+      const startupScript = path.join("/Applications", `Adobe After Effects ${y}`, "Scripts", "Startup", "mcp-bridge-auto.jsx");
+      if (fs.existsSync(startupScript)) {
+        bridgeInstalled = true;
+        break;
+      }
     }
   }
 }
@@ -351,7 +396,9 @@ if (allPassed) {
   console.log(`\n${colors.cyan}${colors.bold}${isVi ? "👉 BƯỚC TIẾP THEO:" : "👉 NEXT STEPS:"}${colors.reset}`);
   console.log(`  1. ${isVi ? "Mở phần mềm Adobe After Effects trên máy tính." : "Launch Adobe After Effects on your computer."}`);
   console.log(`  2. ${isVi ? "Khởi động lại Claude Desktop hoặc Cursor để nạp cấu hình mới." : "Restart Claude Desktop or Cursor to reload configuration."}`);
-  console.log(`  3. ${isVi ? "Nhấp đúp vào 'test-ping.cmd' để kiểm tra kết nối Live Ping và xem 167 tools." : "Double-click 'test-ping.cmd' to verify Live Ping connection & view 167 tools."}`);
+  const pingFile = isWindows ? "'test-ping.cmd'" : "'./test-ping.sh' (hoặc double-click 'test-ping.command')";
+  const pingFileEn = isWindows ? "'test-ping.cmd'" : "'./test-ping.sh' (or double-click 'test-ping.command')";
+  console.log(`  3. ${isVi ? `Chạy ${pingFile} để kiểm tra kết nối Live Ping và xem 167 tools.` : `Run ${pingFileEn} to verify Live Ping connection & view 167 tools.`}`);
 } else {
   console.log(`${colors.yellow}${colors.bold}${isVi ? "👉 HƯỚNG DẪN XỬ LÝ & HOÀN TẤT:" : "👉 ACTION ITEMS & TROUBLESHOOTING:"}${colors.reset}`);
   let step = 1;
@@ -363,6 +410,8 @@ if (allPassed) {
     console.log(`     -> ${isVi ? "Tích chọn: 'Allow Scripts to Write Files and Access Network' rồi khởi động lại AE." : "Check: 'Allow Scripts to Write Files and Access Network' and restart AE."}`);
   }
   console.log(`  ${step++}. ${isVi ? "Khởi động lại ứng dụng Claude Desktop hoặc Cursor để nạp cấu hình MCP." : "Restart Claude Desktop or Cursor to reload MCP server configuration."}`);
-  console.log(`\n${colors.cyan}${colors.bold}  🔄 ${isVi ? "SAU ĐÓ: Bạn có thể nhấp đúp 'test-ping.cmd' để kiểm tra kết nối trực tiếp." : "THEN: Double-click 'test-ping.cmd' to verify the live connection."}${colors.reset}`);
+  const pingFile = isWindows ? "'test-ping.cmd'" : "'./test-ping.sh' (hoặc double-click 'test-ping.command')";
+  const pingFileEn = isWindows ? "'test-ping.cmd'" : "'./test-ping.sh' (or double-click 'test-ping.command')";
+  console.log(`\n${colors.cyan}${colors.bold}  🔄 ${isVi ? `SAU ĐÓ: Bạn có thể chạy ${pingFile} để kiểm tra kết nối trực tiếp.` : `THEN: Run ${pingFileEn} to verify the live connection.`}${colors.reset}`);
 }
 console.log("=".repeat(65) + "\n");

@@ -25,13 +25,17 @@ Thực hiện theo các bước đơn giản dưới đây để thiết lập v
 
 ### Bước 2: Cài Đặt & Kết Nối (Setup & Connect)
 
-#### Cách 1: Chạy 1-Click Script (Khuyên dùng cho Windows)
-* **Thiết lập lần đầu**: Nhấp đúp vào [`setup.cmd`](setup.cmd) (hoặc gõ `setup.cmd` trong terminal). Hệ thống sẽ tự động kiểm tra môi trường, cài đặt dependencies, biên dịch mã nguồn, cài Bridge vào thư mục Startup của After Effects và tự động cấu hình cho Claude Desktop & Cursor.
-* **Kiểm tra nhanh hàng ngày**: Nhấp đúp vào [`test-ping.cmd`](test-ping.cmd) (hoặc gõ `npm run ping` trong terminal) để gửi Live Ping tới After Effects trong < 1 giây và xem dashboard toàn bộ 167 tools.
+#### Cách 1: Chạy 1-Click Script (Khuyên dùng cho cả Windows & macOS)
+* **Trên Windows**:
+  * **Thiết lập lần đầu**: Nhấp đúp vào [`setup.cmd`](setup.cmd) (hoặc gõ `setup.cmd` trong terminal). Hệ thống sẽ tự động kiểm tra môi trường, cài đặt dependencies, biên dịch mã nguồn, cài Bridge vào thư mục Startup của After Effects và tự động cấu hình cho Claude Desktop & Cursor.
+  * **Kiểm tra nhanh hàng ngày**: Nhấp đúp vào [`test-ping.cmd`](test-ping.cmd) (hoặc gõ `npm run ping`) để gửi Live Ping tới After Effects trong < 1 giây và xem dashboard toàn bộ 167 tools.
+* **Trên macOS (MacBook)**:
+  * **Thiết lập lần đầu**: Nhấp đúp vào [`setup.command`](setup.command) trong Finder (hoặc gõ `./setup.sh` trong Terminal). Hệ thống tự động thiết lập và cấu hình hoàn toàn tự động.
+  * **Kiểm tra nhanh hàng ngày**: Nhấp đúp vào [`test-ping.command`](test-ping.command) trong Finder (hoặc gõ `./test-ping.sh` / `npm run ping`) để gửi Live Ping và hiển thị dashboard 167 tools.
 
-> 🌐 **Tự động nhận diện ngôn ngữ (Auto Language Detection)**: Cả hai tệp `setup.cmd` và `test-ping.cmd` tự động thích ứng theo **ngôn ngữ hiển thị (Display Language)** của hệ điều hành: Máy cài Windows/macOS Tiếng Việt sẽ hiển thị Tiếng Việt; máy cài Windows/macOS Tiếng Anh (dù vùng đặt tại Việt Nam) hoặc máy quốc tế sẽ mặc định hiển thị Tiếng Anh. Bạn cũng có thể truyền cờ `--lang=vi` hoặc `--lang=en` nếu muốn chỉ định ngôn ngữ.
+> 🌐 **Tự động nhận diện ngôn ngữ (Auto Language Detection)**: Cả các script trên Windows và macOS đều tự động thích ứng theo **ngôn ngữ hiển thị (Display Language)** của hệ điều hành: Máy cài Windows/macOS Tiếng Việt sẽ hiển thị Tiếng Việt; máy cài Windows/macOS Tiếng Anh (dù vùng đặt tại Việt Nam) hoặc máy quốc tế sẽ mặc định hiển thị Tiếng Anh. Bạn cũng có thể truyền cờ `--lang=vi` hoặc `--lang=en` nếu muốn chỉ định ngôn ngữ.
 
-#### Cách 2: Thiết Lập Thủ Công (Windows & macOS)
+#### Cách 2: Thiết Lập Thủ Công (Terminal / CLI)
 ```bash
 npm install             # 1. Cài đặt thư viện dependencies
 npm run build           # 2. Biên dịch TypeScript sang JavaScript
@@ -51,7 +55,7 @@ npm run doctor          # 4. Kiểm tra sức khỏe hệ thống & tự động
   }
 }
 ```
-* **Claude Desktop**: Đã được `setup.cmd` hoặc `npm run doctor` tự động cấu hình vào `claude_desktop_config.json`. Nếu cấu hình thủ công:
+* **Claude Desktop**: Đã được `setup.cmd` / `setup.sh` hoặc `npm run doctor` tự động cấu hình vào `claude_desktop_config.json`. Nếu cấu hình thủ công:
 ```json
 {
   "mcpServers": {

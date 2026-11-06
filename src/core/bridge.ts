@@ -123,6 +123,22 @@ export function findAfterFxPath(): string | null {
       commonPaths.push(`/Applications/Adobe After Effects ${y}/Adobe After Effects ${y}.app/Contents/MacOS/After Effects`);
       commonPaths.push(`/Applications/Adobe After Effects ${y}/After Effects`);
     }
+    try {
+      const mdfind = execSync('mdfind "kMDItemCFBundleIdentifier == \'com.adobe.AfterEffects\'" 2>/dev/null', {
+        encoding: "utf-8",
+        stdio: ["pipe", "pipe", "ignore"],
+      }).trim();
+      if (mdfind) {
+        for (const line of mdfind.split("\n")) {
+          const trimmed = line.trim();
+          if (trimmed.endsWith(".app")) {
+            commonPaths.push(path.join(trimmed, "Contents", "MacOS", "After Effects"));
+          }
+        }
+      }
+    } catch {
+      /* ignore */
+    }
   }
 
   for (const p of commonPaths) {
@@ -160,18 +176,23 @@ export function isAfterFxRunning(forceRefresh = false): boolean {
       });
       _lastAfterFxRunning = out.toLowerCase().includes("afterfx.exe");
     } else if (process.platform === "darwin") {
-      const out = execSync('pgrep -i "After Effects"', {
-        encoding: "utf-8",
-        stdio: ["pipe", "pipe", "ignore"],
-      });
-      _lastAfterFxRunning = out.trim().length > 0;
+      try {
+        const out = execSync('pgrep -f "After Effects"', {
+          encoding: "utf-8",
+          stdio: ["pipe", "pipe", "ignore"],
+        });
+        _lastAfterFxRunning = out.trim().length > 0;
+      } catch {
+        // pgrep exits with code 1 if no process matched, which is normal when AE is closed
+        _lastAfterFxRunning = false;
+      }
     } else {
       _lastAfterFxRunning = true;
     }
     return _lastAfterFxRunning;
   } catch {
-    _lastAfterFxRunning = true;
-    return true;
+    _lastAfterFxRunning = false;
+    return false;
   }
 }
 
