@@ -4,7 +4,7 @@ import { spawn } from "child_process";
 import { registerAllTools } from "../build/tools/index.js";
 
 async function verifyAll() {
-  console.log("=== [1/4] Verifying 167 MCP Tools in build/tools/index.js ===");
+  console.log("=== [1/4] Verifying 168 MCP Tools in build/tools/index.js ===");
   const registered = [];
   const mockServer = {
     tool: (name, description, schema, handler) => {
@@ -14,12 +14,12 @@ async function verifyAll() {
   registerAllTools(mockServer);
   console.log(`Registered tools count: ${registered.length}`);
   const uniqueNames = new Set(registered.map((t) => t.name));
-  if (registered.length !== 167 || uniqueNames.size !== 167) {
+  if (registered.length !== 168 || uniqueNames.size !== 168) {
     throw new Error(
-      `Tool count mismatch: registered ${registered.length}, unique ${uniqueNames.size}, expected 167.`
+      `Tool count mismatch: registered ${registered.length}, unique ${uniqueNames.size}, expected 168.`
     );
   }
-  console.log("✓ Exact 167 unique tools verified without duplicates.");
+  console.log("✓ Exact 168 unique tools verified without duplicates.");
 
   console.log("\n=== [2/4] Verifying setLayerExpression Bindings ===");
   const bridgeJsx = fs.readFileSync("src/scripts/mcp-bridge-auto.jsx", "utf8");
@@ -35,15 +35,18 @@ async function verifyAll() {
   }
   console.log("✓ setLayerExpression bindings and exports verified in .jsx and .ts.");
 
-  console.log("\n=== [3/4] Verifying 13 SKILL.md Files and Rule Links ===");
+  console.log("\n=== [3/4] Verifying 16 Active SKILL.md Files and Independent Rules ===");
   const expectedSkills = [
+    "ae-3d-cinematic-camera",
     "ae-asset-interchange",
     "ae-audio-reactive",
-    "ae-character-rigging",
     "ae-color-management",
     "ae-design-scripting",
     "ae-expression-math",
     "ae-keyframe-easing",
+    "ae-kinetic-caption-reels",
+    "ae-logo-reveal-pro",
+    "ae-magic-fire-burn",
     "ae-mogrt-essential-graphics",
     "ae-render-pipeline",
     "ae-shape-operators",
@@ -57,7 +60,28 @@ async function verifyAll() {
       throw new Error(`Missing skill file: ${p}`);
     }
   }
-  console.log("✓ All 13 SKILL.md files verified.");
+  if (!fs.existsSync("AGENTS.md")) {
+    throw new Error("Missing unified rule file: AGENTS.md");
+  }
+  if (fs.existsSync("GEMINI.md")) {
+    throw new Error("GEMINI.md must be removed in favor of AGENTS.md");
+  }
+  if (!fs.existsSync(".agent/skills-disabled/ae-character-rigging/SKILL.md")) {
+    throw new Error("Hidden Duik skill missing at .agent/skills-disabled/ae-character-rigging/SKILL.md");
+  }
+  // Verify MCP resource registrations in built index
+  const builtIndex = fs.readFileSync("build/index.js", "utf8");
+  if (!builtIndex.includes("ae://rules/project-standards")) {
+    throw new Error("MCP resource ae://rules/project-standards missing from build/index.js");
+  }
+  if (!builtIndex.includes("ae://rules/all")) {
+    throw new Error("MCP resource ae://rules/all missing from build/index.js");
+  }
+  // Verify INSTRUCTIONS_MENTIONS_GEMINI: false
+  if (builtIndex.includes("GEMINI.md") && !builtIndex.includes("INSTRUCTIONS_MENTIONS_GEMINI: false")) {
+    throw new Error("build/index.js still references GEMINI.md without suppression flag");
+  }
+  console.log("✓ All 16 active SKILL.md files, hidden Duik skill, independent rules, ae://rules/* resources verified.");
 
   console.log("\n=== [4/4] Verifying build/index.js Clean Execution ===");
   await new Promise((resolve, reject) => {

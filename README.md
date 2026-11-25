@@ -1,15 +1,13 @@
 # Adobe After Effects MCP Server
 
-[![Version](https://img.shields.io/badge/version-v2.4-blue.svg)](#)
-[![Tools](https://img.shields.io/badge/tools-167-green.svg)](#-danh-mục-167-tools-15-nhóm-chức-năng)
+[![Version](https://img.shields.io/badge/version-v2.4.3-blue.svg)](#)
+[![Tools](https://img.shields.io/badge/tools-168-green.svg)](#-danh-mục-168-mcp-tools-15-nhóm-chức-năng)
 
-A high-performance, modular Model Context Protocol (MCP) Server for Adobe After Effects built with TypeScript. Enables AI assistants (Claude, Cursor, Antigravity) to automate After Effects directly via a suite of **167 tools** with background ExtendScript CLI execution.
+A high-performance, modular Model Context Protocol (MCP) Server for Adobe After Effects built with TypeScript. Enables AI assistants (Claude, Cursor, Antigravity, VS Code Copilot) to automate After Effects directly via a suite of **168 tools** with background ExtendScript CLI execution.
 
 ---
 
 ## ⚡ Hướng Dẫn Cài Đặt & Kết Nối (Setup & Connection Guide)
-
-Thực hiện theo các bước đơn giản dưới đây để thiết lập và kết nối MCP Server với After Effects:
 
 ### Bước 1: Yêu Cầu Chuẩn Bị (Prerequisites)
 1. **Node.js**: Phiên bản **>= 18.0.0** (Tải tại [nodejs.org](https://nodejs.org/)).
@@ -23,39 +21,24 @@ Thực hiện theo các bước đơn giản dưới đây để thiết lập v
 
 ---
 
-### Bước 2: Cài Đặt & Kết Nối (Setup & Connect)
-
-#### Cách 1: Chạy 1-Click Script (Khuyên dùng cho cả Windows & macOS)
-* **Trên Windows**:
-  * **Thiết lập lần đầu**: Nhấp đúp vào [`setup.cmd`](setup.cmd) (hoặc gõ `setup.cmd` trong terminal). Hệ thống sẽ tự động kiểm tra môi trường, cài đặt dependencies, biên dịch mã nguồn, cài Bridge vào thư mục Startup của After Effects và tự động cấu hình cho Claude Desktop & Cursor.
-  * **Kiểm tra nhanh hàng ngày**: Nhấp đúp vào [`test-ping.cmd`](test-ping.cmd) (hoặc gõ `npm run ping`) để gửi Live Ping tới After Effects trong < 1 giây và xem dashboard toàn bộ 167 tools.
-* **Trên macOS (MacBook)**:
-  * **Thiết lập lần đầu**: Nhấp đúp vào [`setup.command`](setup.command) trong Finder (hoặc gõ `./setup.sh` trong Terminal). Hệ thống tự động thiết lập và cấu hình hoàn toàn tự động.
-  * **Kiểm tra nhanh hàng ngày**: Nhấp đúp vào [`test-ping.command`](test-ping.command) trong Finder (hoặc gõ `./test-ping.sh` / `npm run ping`) để gửi Live Ping và hiển thị dashboard 167 tools.
-
-> 🌐 **Tự động nhận diện ngôn ngữ (Auto Language Detection)**: Cả các script trên Windows và macOS đều tự động thích ứng theo **ngôn ngữ hiển thị (Display Language)** của hệ điều hành: Máy cài Windows/macOS Tiếng Việt sẽ hiển thị Tiếng Việt; máy cài Windows/macOS Tiếng Anh (dù vùng đặt tại Việt Nam) hoặc máy quốc tế sẽ mặc định hiển thị Tiếng Anh. Bạn cũng có thể truyền cờ `--lang=vi` hoặc `--lang=en` nếu muốn chỉ định ngôn ngữ.
-
-#### Cách 2: Thiết Lập Thủ Công (Terminal / CLI)
+### Bước 2: Biên Dịch Dự Án (Build)
 ```bash
 npm install             # 1. Cài đặt thư viện dependencies
 npm run build           # 2. Biên dịch TypeScript sang JavaScript
-npm run install-bridge  # 3. Copy Bridge Listener vào Startup của After Effects
-npm run doctor          # 4. Kiểm tra sức khỏe hệ thống & tự động cấu hình Client
+npm test                # 3. Chạy Dual-Audit kiểm thử hệ thống
 ```
 
-#### Cấu Hình MCP Client (Tự động hoặc Thủ công)
-* **Cursor / Antigravity / Windsurf**: Đã tích hợp sẵn cấu hình trong [`.mcp.json`](.mcp.json) ở thư mục gốc (tự động nhận diện khi mở dự án):
-```json
-{
-  "mcpServers": {
-    "adobe-after-effects": {
-      "command": "node",
-      "args": ["./build/index.js"]
-    }
-  }
-}
-```
-* **Claude Desktop**: Đã được `setup.cmd` / `setup.sh` hoặc `npm run doctor` tự động cấu hình vào `claude_desktop_config.json`. Nếu cấu hình thủ công:
+---
+
+### Bước 3: Cấu Hình MCP Client (Đa Nền Tảng)
+
+Dự án đã tích hợp sẵn các file cấu hình tương thích cho từng nền tảng AI:
+
+* **Antigravity**: Tự động nhận diện Workspace Plugin tại `.agent/plugins/adobe-after-effects/mcp_config.json`.
+* **Cursor**: Tự động nhận diện cấu hình tại `.cursor/mcp.json`.
+* **Claude Code**: Tự động nhận diện cấu hình tại `.mcp.json`.
+* **VS Code Copilot**: Tự động nhận diện cấu hình tại `.vscode/mcp.json`.
+* **Claude Desktop / Khác**:
 ```json
 {
   "mcpServers": {
@@ -66,13 +49,12 @@ npm run doctor          # 4. Kiểm tra sức khỏe hệ thống & tự động
   }
 }
 ```
-*(Khởi động lại Claude Desktop hoặc Cursor để nạp cấu hình mới).*
 
 ---
 
-## 🧠 Hệ Thống 13 Agent Skills (.agent/skills/)
+## 🧠 Hệ Thống 16 Procedural Motion Skills (.agent/skills/)
 
-Tích hợp sẵn **13 kỹ năng chuyên sâu** hỗ trợ quy trình thiết kế và tự động hóa trong After Effects:
+Tích hợp sẵn **16 kỹ năng chuyên sâu** (16 active + 1 disabled) hỗ trợ quy trình thiết kế và tự động hóa trong After Effects:
 
 - **Motion Design & Scripting** ([`ae-design-scripting`](.agent/skills/ae-design-scripting/SKILL.md)): Phân tích kịch bản, mạng lưới Node-Procedural, thẩm mỹ & blueprint.
 - **Keyframe & Easing** ([`ae-keyframe-easing`](.agent/skills/ae-keyframe-easing/SKILL.md)): 12 Ease Presets chuẩn hóa, Remotion spring physics, graph retiming.
@@ -84,25 +66,20 @@ Tích hợp sẵn **13 kỹ năng chuyên sâu** hỗ trợ quy trình thiết k
 - **Asset Interchange** ([`ae-asset-interchange`](.agent/skills/ae-asset-interchange/SKILL.md)): Nhập SVG/AI vector, PSD cropped layers, alpha channel & Lottie.
 - **Audio Reactive** ([`ae-audio-reactive`](.agent/skills/ae-audio-reactive/SKILL.md)): Bắt nhịp beat, audio to keyframes, lọc decay biên độ âm thanh.
 - **MOGRT / Essential Graphics** ([`ae-mogrt-essential-graphics`](.agent/skills/ae-mogrt-essential-graphics/SKILL.md)): Tự động hóa Essential Graphics, tham số động Text, Color, Slider.
-- **Character Rigging** ([`ae-character-rigging`](.agent/skills/ae-character-rigging/SKILL.md)): Rigging nhân vật, parenting, null controller & Duik Angela.
 - **Visual Feedback** ([`ae-visual-feedback`](.agent/skills/ae-visual-feedback/SKILL.md)): Xuất preview frame (see-frame), contact sheet, tự sửa lỗi hình ảnh.
 - **Render Pipeline** ([`ae-render-pipeline`](.agent/skills/ae-render-pipeline/SKILL.md)): Xuất video nền bằng aerender không đơ máy, render queue.
+- **Magic Fire & Burn VFX** ([`ae-magic-fire-burn`](.agent/skills/ae-magic-fire-burn/SKILL.md)): Procedural fire, burn, ember, and smoke VFX bằng native effects.
+- **3D Cinematic Camera** ([`ae-3d-cinematic-camera`](.agent/skills/ae-3d-cinematic-camera/SKILL.md)): Máy quay 3D 2-node, orbit null, Depth of Field, rack focus, 2.5D parallax.
+- **Kinetic Caption Reels** ([`ae-kinetic-caption-reels`](.agent/skills/ae-kinetic-caption-reels/SKILL.md)): Phụ đề 9:16 dọc (TikTok/Reels), karaoke pop, responsive badge, safe zones.
+- **Logo Reveal Pro** ([`ae-logo-reveal-pro`](.agent/skills/ae-logo-reveal-pro/SKILL.md)): Hoạt cảnh logo chuyên nghiệp, trim path stroke, Saber energy trace, light sweep.
+- *(Tạm ẩn)* **Character Rigging** (`ae-character-rigging`): Tạm thời khóa tại `.agent/skills-disabled/` do đã xóa Duik.
 
 ---
 
-## 🛡️ Hệ Thống Multi-Agent 3 Tầng (.agent/rules/)
-
-- **Leader AE** ([`.agent/rules/leader-ae.md`](.agent/rules/leader-ae.md)): Art Director — Phân tích đề bài, lập kịch bản & phân rã tasks.
-- **Worker AE** ([`.agent/rules/worker-ae.md`](.agent/rules/worker-ae.md)): Execution Tech — Thực thi công cụ MCP, try-finally Undo Group, tự sửa lỗi.
-- **Design System** ([`.agent/rules/design-system-spec.md`](.agent/rules/design-system-spec.md)): Tiêu chuẩn thiết kế — Hệ màu RGB 0-1, 32-bpc linear, typography, safe zones.
-- **Collaboration Loop** ([`.agent/rules/agent-collaboration-loop.md`](.agent/rules/agent-collaboration-loop.md)): Vòng lặp phối hợp — Atomic Tasks (Setup $\to$ Assembly $\to$ Motion $\to$ QA).
-
----
-
-## 🛠️ Danh Mục 167 MCP Tools (15 Nhóm Chức Năng)
+## 🛠️ Danh Mục 168 MCP Tools (15 Nhóm Chức Năng)
 
 <details open>
-<summary><b>👉 Danh sách toàn bộ 167 MCP Tools (Bấm để thu gọn / mở rộng)</b></summary>
+<summary><b>👉 Danh sách toàn bộ 168 MCP Tools (Bấm để thu gọn / mở rộng)</b></summary>
 
 - **1. Motion Graphics Templates (6 tools)**: `create-lower-third`, `create-title-card`, `create-transition`, `create-logo-reveal`, `create-text-animator`, `list-template-styles`
 - **2. Vector Shapes & Paths (4 tools)**: `create-path`, `get-path`, `set-path-keyframes`, `add-shape-operator`
@@ -117,7 +94,7 @@ Tích hợp sẵn **13 kỹ năng chuyên sâu** hỗ trợ quy trình thiết k
 - **11. Audio Analysis & Control (3 tools)**: `set-audio-levels`, `get-audio-info`, `analyze-audio-waveform`
 - **12. Visual Feedback & Verification (3 tools)**: `see-frame`, `contact-sheet`, `match-reference`
 - **13. Render Queue & Export (11 tools)**: `add-to-render-queue`, `render-queue`, `start-render`, `render-aerender`, `render-status`, `list-render-queue`, `list-render-templates`, `set-render-queue-item`, `remove-from-render-queue`, `control-render`, `queue-in-ame`
-- **14. System & ExtendScript Engine (6 tools)**: `run-script`, `get-results`, `get-help`, `check-bridge`, `run-bridge-test`, `execute-script`
+- **14. System & ExtendScript Engine (7 tools)**: `run-script`, `get-results`, `get-help`, `check-bridge`, `run-bridge-test`, `execute-script`, `cleanup-session`
 - **15. Compatibility Aliases (19 tools)**: `ae_ping`, `ae_create_comp`, `ae_add_text`, `create_project`, `open_project`, `save_project`, `get_project_info`, `create_lower_third`, `create_title_card`, `create_transition`, `create_logo_reveal`, `create_text_animator`, `apply_expression_template`, `create_path`, `get_path`, `set_3d_layer`, `add_mask`, `list_masks`, `list_render_queue`
 
 </details>

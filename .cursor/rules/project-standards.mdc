@@ -1,0 +1,27 @@
+# Adobe After Effects MCP — Cursor Rules
+
+## Identity
+This project is a self-contained MCP server for Adobe After Effects automation.
+It works with any AI agent. Cursor connects via `.cursor/mcp.json` automatically.
+
+## Always-on Rules
+- Never auto-launch After Effects. Ask the user to open it first.
+- Never create residual log files (CHANGELOG.md, live_error_log.md, etc.).
+- Never reference or use Google Cloud / BigQuery / `datacloud_*` tools.
+- MCP config lives only inside this project — do not write to global Cursor settings.
+- Report results directly in chat after `npm run build` + `node test/verify-build.js` pass 100%.
+
+## Dual-Audit V2 (required before reporting done)
+1. `npm run build` — tsc must pass with 0 errors
+2. `node test/verify-build.js` — all 4 checks must PASS (167 tools, 13 skills, ae://rules/*, no GEMINI.md)
+
+## Skills Available (13 active)
+ae-text-animation, ae-keyframe-easing, ae-shape-operators, ae-expression-math,
+ae-audio-reactive, ae-color-management, ae-asset-interchange, ae-mogrt-essential-graphics,
+ae-render-pipeline, ae-video-tutorial-parser, ae-visual-feedback, ae-design-scripting,
+ae-magic-fire-burn
+
+**Disabled**: ae-character-rigging (Duik not installed — hidden at `.agent/skills-disabled/`)
+
+## Full Rules
+See `AGENTS.md`

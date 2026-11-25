@@ -206,4 +206,123 @@ export function registerSystemTools(server: McpServer): void {
       }
     },
   );
+
+  // ── cleanup-session ────────────────────────────────────────────────────────
+  server.tool(
+    "cleanup-session",
+    "Clean up all temporary files from the current working session: JSX scripts, PNG frames, JSON bridge files, aerender logs, and scratch files. Preserves .aep projects and rendered output (.mp4, .mov, .avi, .mxf). Call this after user confirms QA review is complete.",
+    {
+      dryRun: z
+        .boolean()
+        .optional()
+        .default(false)
+        .describe("If true, list files that would be deleted without actually deleting them."),
+      includeFrames: z
+        .boolean()
+        .optional()
+        .default(true)
+        .describe("Include PNG/JPEG preview frames in cleanup (default: true)."),
+    },
+    async ({ dryRun = false, includeFrames = true }) => {
+      try {
+        const tempDir = getAETempDir();
+        const deleted: string[] = [];
+        const skipped: string[] = [];
+        const errors: string[] = [];
+
+        // Extensions and patterns that are SAFE to delete (temp/scratch files)
+        const deletableExtensions = new Set([".tmp", ".log"]);
+        const deletablePatterns = [
+          /^ae_command/,
+          /^ae_mcp_result/,
+          /^__mcp_/,
+          /^aerender-/,
+          /^verify_out/,
+          /_test_out/,
+          /^scratch_/,
+          /^frame_/,
+          /^preview_/,
+        ];
+
+        // Extensions that are NEVER deleted (user output, projects, scripts, tutorials)
+        const keepExtensions = new Set([
+          ".aep", ".aet",           // After Effects project/template
+          ".jsx",                   // User scripts / ExtendScript assets
+          ".mp4", ".mov", ".avi",   // Rendered video
+          ".mxf", ".prores",        // Professional video formats
+          ".wav", ".aiff", ".mp3",  // Audio output
+          ".md", ".pdf",            // Tutorial notes and guides
+        ]);
+
+        const scanAndClean = (dir: string) => {
+          if (!fs.existsSync(dir)) return;
+          const entries = fs.readdirSync(dir);
+          for (const entry of entries) {
+            const fullPath = path.join(dir, entry);
+            const ext = path.extname(entry).toLowerCase();
+            try {
+              const stat = fs.statSync(fullPath);
+
+              if (stat.isDirectory()) {
+                // Recurse into scratch subdirectories only
+                if (/scratch|temp|tmp|frames|preview/i.test(entry)) {
+                  scanAndClean(fullPath);
+                }
+                continue;
+              }
+
+              // Never delete protected extensions
+              if (keepExtensions.has(ext)) {
+                skipped.push(entry);
+                continue;
+              }
+
+              // Skip PNG/JPEG frames if includeFrames is false
+              if (!includeFrames && (ext === ".png" || ext === ".jpg" || ext === ".jpeg")) {
+                skipped.push(entry);
+                continue;
+              }
+
+              // Delete if extension or pattern matches
+              const isDeleteable =
+                deletableExtensions.has(ext) ||
+                (includeFrames && (ext === ".png" || ext === ".jpg" || ext === ".jpeg")) ||
+                deletablePatterns.some((p) => p.test(entry));
+
+              if (isDeleteable) {
+                if (!dryRun) {
+                  fs.unlinkSync(fullPath);
+                }
+                deleted.push(entry);
+              }
+            } catch (e) {
+              errors.push(`${entry}: ${String(e)}`);
+            }
+          }
+        };
+
+        scanAndClean(tempDir);
+
+        const summary = [
+          dryRun ? "🔍 DRY RUN — no files deleted" : "🧹 Session cleaned successfully",
+          "",
+          `📁 Temp dir: ${tempDir}`,
+          `${dryRun ? "Would delete" : "Deleted"}: ${deleted.length} file(s)`,
+          deleted.length > 0 ? deleted.map((f) => `  - ${f}`).join("\n") : "  (none)",
+          "",
+          `Preserved: ${skipped.length} file(s) (.aep, .mp4, .mov, etc.)`,
+          errors.length > 0 ? `\n⚠️ Errors (${errors.length}):\n${errors.join("\n")}` : "",
+        ]
+          .filter((l) => l !== "")
+          .join("\n");
+
+        return { content: [{ type: "text", text: summary }] };
+      } catch (error) {
+        return {
+          content: [{ type: "text", text: `Error during cleanup: ${String(error)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
 }
