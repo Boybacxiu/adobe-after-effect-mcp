@@ -1,7 +1,7 @@
 // CLI runner for After Effects MCP (Runs headless ExtendScript via AfterFX.exe -r)
 (function() {
     try {
-        $.global.MCP_HEADLESS = true;
+        $.global.MCP_CLI_HEADLESS = (typeof Window === "undefined" || !$.screens || $.screens.length === 0);
         var runnerFile = new File($.fileName);
         var scriptsDir = runnerFile.parent;
         var bridgeFile = new File(scriptsDir.fsName + "/mcp-bridge-auto.jsx");

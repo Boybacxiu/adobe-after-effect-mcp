@@ -4,7 +4,7 @@ import { spawn } from "child_process";
 import { registerAllTools } from "../build/tools/index.js";
 
 async function verifyAll() {
-  console.log("=== [1/4] Verifying 168 MCP Tools in build/tools/index.js ===");
+  console.log("=== [1/4] Verifying 169 MCP Tools in build/tools/index.js ===");
   const registered = [];
   const mockServer = {
     tool: (name, description, schema, handler) => {
@@ -14,14 +14,14 @@ async function verifyAll() {
   registerAllTools(mockServer);
   console.log(`Registered tools count: ${registered.length}`);
   const uniqueNames = new Set(registered.map((t) => t.name));
-  if (registered.length !== 168 || uniqueNames.size !== 168) {
+  if (registered.length !== 169 || uniqueNames.size !== 169) {
     throw new Error(
-      `Tool count mismatch: registered ${registered.length}, unique ${uniqueNames.size}, expected 168.`
+      `Tool count mismatch: registered ${registered.length}, unique ${uniqueNames.size}, expected 169.`
     );
   }
-  console.log("✓ Exact 168 unique tools verified without duplicates.");
+  console.log("✓ Exact 169 unique tools verified without duplicates.");
 
-  console.log("\n=== [2/4] Verifying setLayerExpression Bindings ===");
+  console.log("\n=== [2/4] Verifying setLayerExpression & AI Overlay Bindings ===");
   const bridgeJsx = fs.readFileSync("src/scripts/mcp-bridge-auto.jsx", "utf8");
   if (!bridgeJsx.includes("function setLayerExpression(")) {
     throw new Error("setLayerExpression function definition missing in mcp-bridge-auto.jsx");
@@ -29,11 +29,14 @@ async function verifyAll() {
   if (!bridgeJsx.includes("globalScope.setLayerExpression = setLayerExpression")) {
     throw new Error("globalScope.setLayerExpression export missing in mcp-bridge-auto.jsx");
   }
+  if (!bridgeJsx.includes("function setAiOverlay(") || !bridgeJsx.includes("globalScope.setAiOverlay = setAiOverlay")) {
+    throw new Error("setAiOverlay AI HUD overlay definition/export missing in mcp-bridge-auto.jsx");
+  }
   const exprGen = fs.readFileSync("src/lib/generators/expressionGenerators.ts", "utf8");
   if (!exprGen.includes("generateSetLayerExpression")) {
     throw new Error("generateSetLayerExpression alias missing in expressionGenerators.ts");
   }
-  console.log("✓ setLayerExpression bindings and exports verified in .jsx and .ts.");
+  console.log("✓ setLayerExpression and setAiOverlay bindings verified in .jsx and .ts.");
 
   console.log("\n=== [3/4] Verifying 16 Active SKILL.md Files and Independent Rules ===");
   const expectedSkills = [
@@ -77,9 +80,8 @@ async function verifyAll() {
   if (!builtIndex.includes("ae://rules/all")) {
     throw new Error("MCP resource ae://rules/all missing from build/index.js");
   }
-  // Verify INSTRUCTIONS_MENTIONS_GEMINI: false
-  if (builtIndex.includes("GEMINI.md") && !builtIndex.includes("INSTRUCTIONS_MENTIONS_GEMINI: false")) {
-    throw new Error("build/index.js still references GEMINI.md without suppression flag");
+  if (builtIndex.includes("GEMINI.md")) {
+    throw new Error("build/index.js still references a legacy platform-specific instructions file");
   }
   console.log("✓ All 16 active SKILL.md files, hidden Duik skill, independent rules, ae://rules/* resources verified.");
 

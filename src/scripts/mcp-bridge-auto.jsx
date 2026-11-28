@@ -3063,6 +3063,7 @@ var BRIDGE_VERSION = "1.13.0-mcp-enhanced";
 // group for them (no empty "MCP: ping" entries cluttering Edit > Undo History).
 var READ_ONLY_COMMANDS = {
     "ping": true,
+    "setAiOverlay": true,
     "getProjectInfo": true,
     "listCompositions": true,
     "getLayerInfo": true,
@@ -3076,6 +3077,289 @@ var READ_ONLY_COMMANDS = {
     "getLayerAudioInfo": true,
     "listProjectItems": true
 };
+
+// ---------------------------------------------------------------------------
+// Option A: Floating Non-Modal "AI IS WORKING" ScriptUI HUD Overlay
+// Never blocks AE main thread or Undo History, auto-hides on idle timeout,
+// and always provides an emergency Unlock/Dismiss button for the user.
+// ---------------------------------------------------------------------------
+function getAiHudState() {
+    if ($.global && $.global.__aeAiHudState) {
+        return $.global.__aeAiHudState;
+    }
+    var st = {
+        win: null,
+        titleLbl: null,
+        msgLbl: null,
+        metaLbl: null,
+        visible: false,
+        explicitLock: false,
+        startTimeMs: 0,
+        lastTickUiMs: 0,
+        deadlineMs: 0,
+        userDismissedUntilMs: 0,
+        stepCount: 0,
+        baseMessage: "AI đang thực thi tác vụ tự động trong After Effects...",
+        lastCommand: ""
+    };
+    if ($.global) { $.global.__aeAiHudState = st; }
+    return st;
+}
+
+function aiHudSetLabelColor(ctrl, rgba) {
+    try {
+        var g = ctrl.graphics;
+        g.foregroundColor = g.newPen(g.PenType.SOLID_COLOR, rgba, 1);
+    } catch (e) {}
+}
+
+function aiHudHide(byUser) {
+    var st = getAiHudState();
+    st.visible = false;
+    st.explicitLock = false;
+    st.stepCount = 0;
+    if (byUser) {
+        st.userDismissedUntilMs = (new Date().getTime()) + 10000;
+    }
+    if (st.win) {
+        try { st.win.hide(); } catch (e) {}
+    }
+}
+
+function isAiHudHeadless() {
+    if (typeof Window === "undefined") { return true; }
+    try {
+        if (typeof $ !== "undefined" && $.screens && $.screens.length === 0) { return true; }
+    } catch (e) {}
+    if ($.global && $.global.MCP_CLI_HEADLESS === true) { return true; }
+    return false;
+}
+
+function aiHudEnsureWindow() {
+    if (isAiHudHeadless()) { return null; }
+    var st = getAiHudState();
+    if (st.win) {
+        try {
+            if (st.win.visible !== undefined) { return st; }
+        } catch (e) {
+            st.win = null;
+        }
+    }
+    try {
+        var win = new Window("palette", "AI IS WORKING", undefined, { borderless: true });
+        win.orientation = "column";
+        win.alignChildren = ["fill", "top"];
+        win.margins = [22, 18, 22, 16];
+        win.spacing = 10;
+
+        try {
+            var wg = win.graphics;
+            wg.backgroundColor = wg.newBrush(wg.BrushType.SOLID_COLOR, [0.09, 0.10, 0.14, 1]);
+        } catch (bgErr) {}
+
+        var headerRow = win.add("group");
+        headerRow.orientation = "row";
+        headerRow.alignChildren = ["left", "center"];
+        var titleLbl = headerRow.add("statictext", undefined, "AI IS WORKING  |  DO NOT TOUCH AE");
+        titleLbl.preferredSize = [430, 24];
+        try {
+            titleLbl.graphics.font = ScriptUI.newFont("Segoe UI", "Bold", 14);
+        } catch (fErr1) {}
+        aiHudSetLabelColor(titleLbl, [1.0, 0.76, 0.16, 1]);
+
+        var msgLbl = win.add("statictext", undefined, "AI dang thuc thi tac vu tu dong...", { multiline: true });
+        msgLbl.preferredSize = [430, 38];
+        try {
+            msgLbl.graphics.font = ScriptUI.newFont("Segoe UI", "Regular", 12);
+        } catch (fErr2) {}
+        aiHudSetLabelColor(msgLbl, [0.95, 0.96, 0.99, 1]);
+
+        var footerRow = win.add("group");
+        footerRow.orientation = "row";
+        footerRow.alignChildren = ["fill", "center"];
+        footerRow.spacing = 12;
+
+        var metaLbl = footerRow.add("statictext", undefined, "Steps: 0  |  0s");
+        metaLbl.preferredSize = [260, 22];
+        try {
+            metaLbl.graphics.font = ScriptUI.newFont("Segoe UI", "Regular", 11);
+        } catch (fErr3) {}
+        aiHudSetLabelColor(metaLbl, [0.45, 0.82, 0.98, 1]);
+
+        var dismissBtn = footerRow.add("button", undefined, "Mo khoa / An (ESC)");
+        dismissBtn.preferredSize = [158, 26];
+        dismissBtn.onClick = function () {
+            aiHudHide(true);
+        };
+
+        try {
+            win.addEventListener("keydown", function (kd) {
+                try {
+                    if (kd && kd.keyName === "Escape") {
+                        aiHudHide(true);
+                    }
+                } catch (kErr) {}
+            });
+        } catch (evErr) {}
+
+        try {
+            win.layout.layout(true);
+            var b = win.bounds;
+            var w = (b && b[2] > b[0]) ? (b[2] - b[0]) : 474;
+            var h = (b && b[3] > b[1]) ? (b[3] - b[1]) : 138;
+            if ($.screens && $.screens.length > 0) {
+                var scr = $.screens[0];
+                var cx = Math.round((scr.left + scr.right) / 2);
+                var cy = Math.round((scr.top + scr.bottom) / 2);
+                win.location = [cx - Math.round(w / 2), cy - Math.round(h / 2)];
+            } else {
+                win.center();
+            }
+        } catch (locErr) {
+            try { win.center(); } catch (cErr) {}
+        }
+
+        st.win = win;
+        st.titleLbl = titleLbl;
+        st.msgLbl = msgLbl;
+        st.metaLbl = metaLbl;
+        return st;
+    } catch (winErr) {
+        logToPanel("AI HUD create failed (safe ignore): " + winErr.toString());
+        return null;
+    }
+}
+
+function aiHudRenderText(st, nowMs) {
+    if (!st || !st.win) { return; }
+    try {
+        var elapsedSec = st.startTimeMs > 0 ? Math.max(0, Math.floor((nowMs - st.startTimeMs) / 1000)) : 0;
+        var pulse = (Math.floor(nowMs / 500) % 2 === 0) ? "[*]" : "[ ]";
+        if (st.titleLbl) {
+            st.titleLbl.text = pulse + "  AI IS WORKING - VUI LONG KHONG THAO TAC AE";
+        }
+        if (st.msgLbl) {
+            var line = st.baseMessage || "AI dang thuc thi tac vu tu dong...";
+            if (st.lastCommand && line.indexOf(st.lastCommand) === -1) {
+                line = line + "\nLenh hien tai: " + st.lastCommand;
+            }
+            st.msgLbl.text = line;
+        }
+        if (st.metaLbl) {
+            st.metaLbl.text = "Steps: " + st.stepCount + "  |  " + elapsedSec + "s  (Tu an khi xong)";
+        }
+        st.win.update();
+    } catch (e) {}
+}
+
+function aiHudOnCommand(command, args) {
+    if (isAiHudHeadless()) { return; }
+    if (command === "ping" || command === "setAiOverlay") { return; }
+    var nowMs = new Date().getTime();
+    var st = getAiHudState();
+    // Respect explicit user dismissal cooldown for auto-triggered commands
+    if (!st.explicitLock && st.userDismissedUntilMs > nowMs) { return; }
+    var ensured = aiHudEnsureWindow();
+    if (!ensured) { return; }
+
+    if (!st.visible) {
+        st.startTimeMs = nowMs;
+        st.stepCount = 0;
+    }
+    st.stepCount += 1;
+    st.lastCommand = "" + command;
+    if (!st.explicitLock) {
+        st.baseMessage = "AI dang tu dong dung project trong After Effects...";
+        st.deadlineMs = nowMs + 12000; // 12s auto-hide if no follow-up command
+    } else {
+        // Keep explicit lock alive while commands continue flowing
+        var minDeadline = nowMs + 15000;
+        if (st.deadlineMs < minDeadline) { st.deadlineMs = minDeadline; }
+    }
+
+    aiHudRenderText(st, nowMs);
+    if (!st.visible) {
+        try {
+            st.win.show();
+            st.visible = true;
+            st.win.update();
+        } catch (sErr) {}
+    }
+    st.lastTickUiMs = nowMs;
+}
+
+function aiHudTick() {
+    var st = getAiHudState();
+    if (!st.visible || !st.win) { return; }
+    var nowMs = new Date().getTime();
+    if (st.deadlineMs > 0 && nowMs >= st.deadlineMs) {
+        aiHudHide(false);
+        return;
+    }
+    if ((nowMs - st.lastTickUiMs) >= 500) {
+        st.lastTickUiMs = nowMs;
+        aiHudRenderText(st, nowMs);
+    }
+}
+
+function setAiOverlay(args) {
+    var params = args || {};
+    var active = !(params.active === false || params.active === "false");
+    if (!active) {
+        aiHudHide(false);
+        return JSON.stringify({
+            status: "success",
+            overlayActive: false,
+            message: "AI IS WORKING overlay hidden cleanly."
+        });
+    }
+    if (isAiHudHeadless()) {
+        return JSON.stringify({
+            status: "success",
+            overlayActive: false,
+            headless: true,
+            note: "Skipped UI overlay in headless CLI mode."
+        });
+    }
+    var nowMs = new Date().getTime();
+    var st = getAiHudState();
+    st.userDismissedUntilMs = 0; // explicit session start overrides cooldown
+    var ensured = aiHudEnsureWindow();
+    if (!ensured) {
+        return JSON.stringify({
+            status: "error",
+            error: "Could not initialize ScriptUI AI HUD palette window."
+        });
+    }
+    var timeoutSec = Number(params.timeoutSeconds);
+    if (!timeoutSec || isNaN(timeoutSec) || timeoutSec < 5) { timeoutSec = 45; }
+    if (timeoutSec > 180) { timeoutSec = 180; }
+
+    if (!st.visible) {
+        st.startTimeMs = nowMs;
+        st.stepCount = 0;
+    }
+    st.explicitLock = true;
+    st.deadlineMs = nowMs + (timeoutSec * 1000);
+    st.baseMessage = params.message ? ("" + params.message) : "AI dang thuc thi tac vu trong After Effects...";
+    st.lastCommand = params.step ? ("" + params.step) : (st.lastCommand || "Active Session");
+
+    aiHudRenderText(st, nowMs);
+    if (!st.visible) {
+        try {
+            st.win.show();
+            st.visible = true;
+            st.win.update();
+        } catch (sErr) {}
+    }
+    st.lastTickUiMs = nowMs;
+    return JSON.stringify({
+        status: "success",
+        overlayActive: true,
+        timeoutSeconds: timeoutSec,
+        message: st.baseMessage
+    });
+}
 // MUST mirror getAETempDir() on the Node server side. On Windows we use
 // LOCALAPPDATA (never redirected by OneDrive) so both processes resolve to the
 // same folder. Override with the AE_MCP_BRIDGE_DIR env var if needed.
@@ -4295,6 +4579,8 @@ function executeCommand(command, args) {
         "matchReference": true
     };
     var useUndoGroup = !READ_ONLY_COMMANDS[command] && !NO_UNDO_GROUP_COMMANDS[command];
+    // Show/refresh non-modal Option A "AI IS WORKING" HUD banner inside AE
+    try { aiHudOnCommand(command, args); } catch (hudErr) {}
     // Suppress any AE modal for the whole execution so a dialog can never block the
     // single-threaded bridge poll loop (a blocked panel never writes the result file
     // -> automation hang). endSuppressDialogs(false) below clears it without alerting.
@@ -4568,6 +4854,11 @@ function executeCommand(command, args) {
                     activeComp: (app.project && app.project.activeItem instanceof CompItem ? app.project.activeItem.name : null)
                 });
                 break;
+            case "setAiOverlay":
+                logToPanel("Calling setAiOverlay function...");
+                result = setAiOverlay(args);
+                logToPanel("Returned from setAiOverlay.");
+                break;
             default:
                 result = JSON.stringify({ error: "Unknown command: " + command });
         }
@@ -4675,6 +4966,7 @@ function checkForCommands() {
     isChecking = true;
     
     try {
+        try { aiHudTick(); } catch (hudTickErr) {}
         var commandFile = new File(getCommandFilePath());
         if (commandFile.exists) {
             commandFile.encoding = "UTF-8";
@@ -4741,6 +5033,7 @@ globalScope.getBridgeFolder = getBridgeFolder;
 globalScope.startMCPCommandChecker = startCommandChecker;
 globalScope.setLayerExpression = setLayerExpression;
 globalScope.setLayerKeyframe = setLayerKeyframe;
+globalScope.setAiOverlay = setAiOverlay;
 
 if (typeof globalScope.JSON === "undefined" && typeof JSON !== "undefined") {
     globalScope.JSON = JSON;

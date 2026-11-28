@@ -1,7 +1,7 @@
 # Adobe After Effects MCP — Project Standards & Guidelines
 
 > **Platform-independent project.** Works with any AI agent (Antigravity, Cursor, Claude Code, VS Code Copilot, etc.).
-> Automation engine for Adobe After Effects with **168 MCP tools** and **16 active procedural motion skills** (v2.4.4).
+> Automation engine for Adobe After Effects with **169 MCP tools** and **16 active procedural motion skills** (v2.4.5).
 
 ---
 
@@ -9,7 +9,7 @@
 - **Strictly No Cloud / Data Agent Kit**: Không gợi ý, gọi hoặc tham chiếu các công cụ/skill thuộc Google Cloud, BigQuery, Dataproc, Spanner, AlloyDB, Cloud SQL, Dataform, hay `datacloud_*`.
 - **MCP Tool Scope**: Chỉ sử dụng hệ thống công cụ `adobe-after-effects` MCP cho tự động hóa After Effects, ExtendScript CLI và Local Bridge.
 - **Self-Contained & Isolated**: Giữ mọi cấu hình MCP, skills và rules nằm gọn trong thư mục dự án này, không phụ thuộc cấu hình Global (`~/.gemini/config/`).
-- **INSTRUCTIONS_MENTIONS_GEMINI: false** — Không được tham chiếu, nhắc đến, hay phụ thuộc `GEMINI.md` trong bất kỳ instruction nào.
+- **Hướng dẫn độc lập nền tảng**: Dùng `AGENTS.md` và các quy tắc trong dự án. Không tham chiếu hoặc phụ thuộc vào tệp hướng dẫn cũ của nền tảng khác.
 
 ## B. Repo Maintenance Discipline
 - **Không tạo file log tồn dư**: Tuyệt đối KHÔNG tạo `CHANGELOG.md`, `live_error_log.md` hay tệp log tạm trong repository.
@@ -23,12 +23,12 @@ Mọi thay đổi code phải trải qua quy trình Dual-Audit trước khi báo
 **Audit 1 — Technical Build Check:**
 1. `npm run build` → tsc phải pass 0 errors, 0 warnings.
 2. `node test/verify-build.js` → tất cả 4 mục phải PASS.
-3. Kiểm tra tool count ≥ 168, skill count khớp với số active `SKILL.md` (16 active).
+3. Kiểm tra tool count ≥ 169, skill count khớp với số active `SKILL.md` (16 active).
 
 **Audit 2 — Semantic Consistency Check:**
 1. `src/index.ts` `SERVER_INSTRUCTIONS` phải phản ánh đúng tool count và skill count.
 2. `AGENTS.md` phải đồng bộ với hằng số `PROJECT_STANDARDS` trong `src/index.ts`.
-3. Không có tham chiếu `GEMINI.md` trong bất kỳ file `.ts`, `.md`, `.json` nào.
+3. Không có tham chiếu tệp hướng dẫn cũ của nền tảng khác trong các file `.ts`, `.md`, `.json`.
 4. MCP resource `ae://rules/project-standards` và `ae://rules/all` hoạt động chuẩn xác.
 
 ## D. Skill Matrix (16 Active + 1 Disabled = 17 Skills)

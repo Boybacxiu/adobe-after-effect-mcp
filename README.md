@@ -1,9 +1,9 @@
 # Adobe After Effects MCP Server
 
-[![Version](https://img.shields.io/badge/version-v2.4.3-blue.svg)](#)
-[![Tools](https://img.shields.io/badge/tools-168-green.svg)](#-danh-mục-168-mcp-tools-15-nhóm-chức-năng)
+[![Version](https://img.shields.io/badge/version-v2.4.5-blue.svg)](#)
+[![Tools](https://img.shields.io/badge/tools-169-green.svg)](#-danh-mục-169-mcp-tools-15-nhóm-chức-năng)
 
-A high-performance, modular Model Context Protocol (MCP) Server for Adobe After Effects built with TypeScript. Enables AI assistants (Claude, Cursor, Antigravity, VS Code Copilot) to automate After Effects directly via a suite of **168 tools** with background ExtendScript CLI execution.
+A high-performance, modular Model Context Protocol (MCP) Server for Adobe After Effects built with TypeScript. Enables AI assistants (Claude, Cursor, Antigravity, VS Code Copilot) to automate After Effects directly via a suite of **169 tools** with background ExtendScript CLI execution.
 
 ---
 
@@ -18,6 +18,8 @@ A high-performance, modular Model Context Protocol (MCP) Server for Adobe After 
    * Khởi động lại After Effects một lần.
 
 > **Quy tắc sử dụng hàng ngày**: Trước khi yêu cầu AI thực thi lệnh thiết kế, vui lòng **tự mở After Effects trên máy**. Background Bridge sẽ tự động kích hoạt ngầm, không cần mở panel hay thao tác thủ công.
+
+Trên Windows với After Effects 25.1, đặt `src/scripts/mcp-bridge-auto.jsx` trong `%APPDATA%\Adobe\After Effects\25.1\Scripts\Startup`, rồi mở lại After Effects. Tool `set-ai-overlay` bật hoặc ẩn HUD **AI IS WORKING** trong khi MCP thực thi lệnh.
 
 ---
 
@@ -76,10 +78,10 @@ Tích hợp sẵn **16 kỹ năng chuyên sâu** (16 active + 1 disabled) hỗ t
 
 ---
 
-## 🛠️ Danh Mục 168 MCP Tools (15 Nhóm Chức Năng)
+## 🛠️ Danh Mục 169 MCP Tools (15 Nhóm Chức Năng)
 
 <details open>
-<summary><b>👉 Danh sách toàn bộ 168 MCP Tools (Bấm để thu gọn / mở rộng)</b></summary>
+<summary><b>👉 Danh sách toàn bộ 169 MCP Tools (Bấm để thu gọn / mở rộng)</b></summary>
 
 - **1. Motion Graphics Templates (6 tools)**: `create-lower-third`, `create-title-card`, `create-transition`, `create-logo-reveal`, `create-text-animator`, `list-template-styles`
 - **2. Vector Shapes & Paths (4 tools)**: `create-path`, `get-path`, `set-path-keyframes`, `add-shape-operator`
@@ -94,7 +96,7 @@ Tích hợp sẵn **16 kỹ năng chuyên sâu** (16 active + 1 disabled) hỗ t
 - **11. Audio Analysis & Control (3 tools)**: `set-audio-levels`, `get-audio-info`, `analyze-audio-waveform`
 - **12. Visual Feedback & Verification (3 tools)**: `see-frame`, `contact-sheet`, `match-reference`
 - **13. Render Queue & Export (11 tools)**: `add-to-render-queue`, `render-queue`, `start-render`, `render-aerender`, `render-status`, `list-render-queue`, `list-render-templates`, `set-render-queue-item`, `remove-from-render-queue`, `control-render`, `queue-in-ame`
-- **14. System & ExtendScript Engine (7 tools)**: `run-script`, `get-results`, `get-help`, `check-bridge`, `run-bridge-test`, `execute-script`, `cleanup-session`
+- **14. System & ExtendScript Engine (8 tools)**: `run-script`, `get-results`, `get-help`, `check-bridge`, `run-bridge-test`, `execute-script`, `set-ai-overlay`, `cleanup-session`
 - **15. Compatibility Aliases (19 tools)**: `ae_ping`, `ae_create_comp`, `ae_add_text`, `create_project`, `open_project`, `save_project`, `get_project_info`, `create_lower_third`, `create_title_card`, `create_transition`, `create_logo_reveal`, `create_text_animator`, `apply_expression_template`, `create_path`, `get_path`, `set_3d_layer`, `add_mask`, `list_masks`, `list_render_queue`
 
 </details>

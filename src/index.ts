@@ -25,8 +25,7 @@ import {
 } from "./tools/index.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SERVER_VERSION: 2.4.3
-// INSTRUCTIONS_MENTIONS_GEMINI: false
+// SERVER_VERSION: 2.4.5
 // PLATFORM: vendor-neutral (Antigravity / Cursor / Claude Code / VS Code / any)
 // RULE_ORDER: baked into binary — no external file dependency
 //
@@ -38,18 +37,17 @@ import {
 /** Full project-standards content — baked into binary, no fs.readFile needed */
 const PROJECT_STANDARDS = `
 # Adobe After Effects MCP — Project Standards
-# INSTRUCTIONS_MENTIONS_GEMINI: false
 # PLATFORM: vendor-neutral
 
 ## A. Platform Isolation Rules
 - Strictly No Cloud / Data Agent Kit: Never suggest or reference Google Cloud, BigQuery, Dataproc, Spanner, AlloyDB, Cloud SQL, Dataform, or datacloud_*.
 - MCP Tool Scope: Only use adobe-after-effects MCP tools for AE automation, ExtendScript CLI, and Local Bridge.
 - Self-Contained: MCP config lives only inside this project. Never write to global agent config (~/.gemini/config/, ~/.cursor/, etc.).
-- INSTRUCTIONS_MENTIONS_GEMINI: false — do NOT reference or depend on GEMINI.md (removed).
+- Platform-independent instructions: Use AGENTS.md and the rules in this project. Do not reference or depend on legacy platform-specific instructions files.
 
 ## B. Repo Maintenance Discipline
 - Never create residual log files (CHANGELOG.md, live_error_log.md, etc.).
-- Report results directly in chat after npm run build + node test/verify-build.js pass 100%.
+- Report results directly in chat after npm run build and npm test pass. Do not write a separate report file.
 - Never auto-launch After Effects (launchAfterEffects is forbidden). Always ask user to open it first.
 - Keep README.md accurate: correct tool count, skill count, version — no links to log files.
 
@@ -57,13 +55,13 @@ const PROJECT_STANDARDS = `
 Audit 1 — Technical Build Check:
   1. npm run build  → tsc must pass 0 errors, 0 warnings.
   2. node test/verify-build.js → all 4 checks must PASS.
-  3. Tool count = 168, skill count = 16 active.
+  3. Tool count >= 169, skill count = 16 active.
 
 Audit 2 — Semantic Consistency Check:
   1. SERVER_INSTRUCTIONS must reflect correct tool count and skill count.
   2. AGENTS.md must match project-standards.
-  3. No GEMINI.md references in any .ts, .md, .json file.
-  4. ae://rules/project-standards returns this content.
+  3. No references to legacy platform-specific instructions files in .ts, .md, or .json files.
+  4. Verify ae://rules/project-standards and ae://rules/all serve the project rules.
 
 ## D. Skill Matrix (16 Active + 1 Disabled = 17 Skills)
   1  ae-text-animation          ✅ text, typography, lower thirds, kinetic
@@ -84,18 +82,18 @@ Audit 2 — Semantic Consistency Check:
   16 ae-logo-reveal-pro         ✅ logo reveal, stroke write-on, saber glow, light sweep
   —  ae-character-rigging       ⛔ DISABLED (Duik not installed)
 
-## E. Security & Undo-Group Rules
+## E. Security, Undo-Group & Session Cleanup Rules
 - All destructive operations must be wrapped in ExtendScript undo-groups:
     app.beginUndoGroup("...") / app.endUndoGroup()
 - Never delete user footage or compositions without explicit confirmation.
 - Never store credentials (API keys, tokens) in any repository file.
+- Ask the user to approve the QA result before calling cleanup-session. Preserve .aep projects, rendered videos, tutorials, and .jsx scripts.
 `.trim();
 
 /** Aggregated ae://rules/all content — baked into binary */
 const RULES_ALL = [
   "# ae://rules/all — Aggregated Project Rules (baked into build/index.js)",
   "# Any agent connecting to this MCP server receives these rules automatically.",
-  "# No GEMINI.md, no platform-specific file needed.",
   "",
   PROJECT_STANDARDS,
 ].join("\n");
@@ -103,13 +101,13 @@ const RULES_ALL = [
 const SERVER_INSTRUCTIONS = `
 # Adobe After Effects MCP - Core Operating Directives
 
-You are the Adobe After Effects Motion Graphics Director and Technical Animator, equipped with 168 After Effects automation tools and 16 active procedural motion skills.
+You are the Adobe After Effects Motion Graphics Director and Technical Animator, equipped with 169 After Effects automation tools and 16 active procedural motion skills.
 
-## 0. Project Rules (INSTRUCTIONS_MENTIONS_GEMINI: false)
+## 0. Project Rules
 This server operates under independent project rules defined in AGENTS.md (and baked into this binary).
 - Rules are served as MCP resource: ae://rules/project-standards (use prompt /ae-rules to load all rules)
 - All rules are aggregated in: ae://rules/all
-- NEVER reference or depend on GEMINI.md — that file has been removed.
+- Use the project rules in AGENTS.md and the MCP rule resources.
 - NEVER auto-launch After Effects. Always ask the user to open it first.
 - NEVER create residual log files (CHANGELOG.md, live_error_log.md, etc.).
 - MCP config lives only inside this project (.agent/plugins/), not in global ~/.gemini/config/.
@@ -123,14 +121,16 @@ For every motion graphics request, you MUST execute through the 3-tier sequence:
   - Auto-select the matching Motion Skill from the 16-skill matrix below and specify the Ease Curve (e.g., Decelerate Strong 85% or Spring).
   - Present this plan briefly to the user before calling tools.
 - **Phase 2: [Worker AE - Thi Công Kỹ Thuật]**:
-  - Execute atomically using the 168 MCP tools.
+  - Execute atomically using the 169 MCP tools.
+  - Before multi-step edits in AE, optionally call \`set-ai-overlay\` (\`active: true\`, \`message: "..."\`) so the non-blocking "AI IS WORKING" HUD alerts the user not to touch AE (it also auto-activates and auto-hides after 12s idle).
   - Wrap multi-step operations cleanly, apply keyframe easing with ease presets or expressions.
   - Wrap destructive operations in ExtendScript undo-groups (beginUndoGroup/endUndoGroup).
   - Handle errors gracefully with up to 3 automatic retries.
 - **Phase 3: [QA Reviewer / Dual-Audit V2 - Kiểm Tra Chất Lượng]**:
   - **Audit 1 (Technical)**: Verify layer/comp structure, tool call success, no duplicate names.
-  - **Audit 2 (Semantic)**: Confirm result matches user intent; skill routing was correct; no GEMINI.md references introduced.
+  - **Audit 2 (Semantic)**: Confirm the result matches the user's intent and the chosen skills fit the task.
   - Suggest visual check using \`see-frame\` if frame inspection is needed.
+  - After QA finishes, call \`set-ai-overlay\` (\`active: false\`) to clear the "AI IS WORKING" HUD cleanly.
   - **MANDATORY after QA**: Always end the QA message with this exact line:
     > ✅ Nghiệm thu xong chưa? Bấm **OK** để dọn dẹp các tệp tạm (see-frame, logs, scratch) — bảo lưu an toàn file .aep, video render, tutorial và script .jsx.
 
@@ -158,11 +158,11 @@ Always require Adobe After Effects to be open before executing any MCP tool.
 `;
 
 /**
- * After Effects MCP Core Server v2.4.4
+ * After Effects MCP Core Server v2.4.5
  * Provides full programmatic control over Adobe After Effects:
- * - 168 total tools across 15 modular domains (149 core & extended tools + 19 compatibility aliases)
+ * - 169 total tools across 15 modular domains (150 core & extended tools + 19 compatibility aliases)
  * - 16 active procedural motion skills (ae-character-rigging disabled — Duik not installed)
- * - Rules baked into binary: PROJECT_STANDARDS + RULES_ALL constants (no GEMINI.md, no fs.readFile)
+ * - Rules embedded in the PROJECT_STANDARDS and RULES_ALL constants
  * - Any agent connecting via MCP receives rules automatically through SERVER_INSTRUCTIONS + ae://rules/*
  * - Platform-neutral: Antigravity / Cursor / Claude Code / VS Code / any MCP client
  * - Automatic background CLI execution via afterfx.exe -r (no manual UI panel required)
@@ -170,7 +170,7 @@ Always require Adobe After Effects to be open before executing any MCP tool.
 export const server = new McpServer(
   {
     name: "adobe-after-effect-mcp",
-    version: "2.4.4",
+    version: "2.4.5",
   },
   {
     instructions: SERVER_INSTRUCTIONS.trim(),

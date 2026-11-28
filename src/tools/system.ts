@@ -207,6 +207,48 @@ export function registerSystemTools(server: McpServer): void {
     },
   );
 
+  // ── set-ai-overlay ─────────────────────────────────────────────────────────
+  server.tool(
+    "set-ai-overlay",
+    "Show or hide the non-blocking floating 'AI IS WORKING' ScriptUI HUD banner inside After Effects (Option A) to alert the user not to touch AE while AI executes tasks. Includes emergency dismiss button and auto-hide safety timeout.",
+    {
+      active: z
+        .boolean()
+        .describe("true to show/update the 'AI IS WORKING' overlay inside AE; false to hide it immediately."),
+      message: z
+        .string()
+        .optional()
+        .describe("Optional status description shown on the banner (e.g., 'Đang dựng Neon Title & Camera 3D...')."),
+      step: z
+        .string()
+        .optional()
+        .describe("Optional step label displayed below the message (e.g., 'Bước 2/4: Keyframe Spring')."),
+      timeoutSeconds: z
+        .number()
+        .min(5)
+        .max(180)
+        .optional()
+        .default(45)
+        .describe("Safety auto-hide idle timeout in seconds (default: 45s)."),
+    },
+    async ({ active, message, step, timeoutSeconds = 45 }) => {
+      try {
+        const result = await sendBridgeCommand(
+          "setAiOverlay",
+          { active, message, step, timeoutSeconds },
+          5000,
+          150,
+        );
+        return bridgeToolResult(result);
+      } catch (error) {
+        return {
+          content: [{ type: "text", text: `Error toggling AI overlay: ${String(error)}` }],
+          isError: true,
+        };
+      }
+    },
+  );
+
   // ── cleanup-session ────────────────────────────────────────────────────────
   server.tool(
     "cleanup-session",
